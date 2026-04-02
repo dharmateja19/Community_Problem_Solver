@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 
 const connectDB = async (req, res) => {
     try {
-        await mongoose.connect("mongodb://localhost:27017/CommunityProblemSolver")
+        await mongoose.connect(process.env.MONGODB_URL)
         console.log("mongodb connected successfully")
     } catch (error) {
         console.log(error)
