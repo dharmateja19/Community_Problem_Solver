@@ -6,6 +6,11 @@ const solutionSchema = new mongoose.Schema({
         ref : "Problem",
         required : true
     },
+    user : {
+        type : mongoose.Schema.Types.ObjectId,
+        ref : "User",
+        required : true
+    },
     description : {
         type : String,
         required : true
