@@ -19,8 +19,11 @@ app.use('/api/problems',authMiddleware, problemRoutes)
 app.use('/api/solutions', authMiddleware, solutionRoutes)
 app.use('/api/votes', authMiddleware, voteRoutes)
 
-app.use('/', (req, res) => res.send("Hello from server"))
+app.get('/', (req, res) => res.send("Hello from server"))
 
+app.use((req, res) => {
+    res.status(404).json({ message: 'Route not found' });
+})
 
 const PORT = process.env.PORT || 3000
 
