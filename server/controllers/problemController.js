@@ -1,4 +1,6 @@
 import Problem from "../models/Problem.js"
+import Tracking from "../models/Tracking.js"
+import { createNotification } from "../utils/notifications.js"
 
 export const createProblem = async (req, res) => {
     try {
@@ -8,6 +10,21 @@ export const createProblem = async (req, res) => {
         }
         const problem = new Problem({title, description, user : req.user.id, image, location})
         await problem.save()
+        await Tracking.create({
+            problemId: problem._id,
+            status: problem.status,
+            note: "Problem created",
+            updatedBy: req.user.id
+        })
+
+        await createNotification({
+            userId: req.user.id,
+            title: "Problem posted successfully",
+            message: `Your problem ${title} has been posted successfully.`,
+            type: "problem",
+            link: `/problems/${problem._id}`
+        })
+
         res.status(201).json({message : "Problem Added Successfully", problem})
     } catch (error) {
         console.log(error);
@@ -47,6 +64,9 @@ export const updateProblemStatus = async (req, res) => {
         if(!problem) {
             return res.status(404).json({message : "Problem Not Found"})
         }
+        if(problem.user.toString() !== req.user.id.toString()) {
+            return res.status(403).json({message : "Unauthorized"})
+        }
         const {status} = req.body;
         if(!status) {
             return res.status(400).json({message : "Status is required"})
@@ -68,6 +88,23 @@ export const updateProblemStatus = async (req, res) => {
         }
         problem.status = status;
         await problem.save()
+        await Tracking.create({
+            problemId: problem._id,
+            status,
+            note: `Status updated to ${status}`,
+            updatedBy: req.user.id
+        })
+
+        await createNotification({
+            userId: problem.user,
+            title: "Problem status updated",
+            message: `Your problem ${problem.title} status changed to ${status}.`,
+            type: "status",
+            link: `/problems/${problem._id}`,
+            emailSubject: "Problem status updated",
+            emailText: `The status of your problem titled ${problem.title} changed to ${status}.`
+        })
+
         res.status(200).json({message : "Problem status updated successfully", problem})
     } catch (error) {
         console.log(error);
