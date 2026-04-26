@@ -2,7 +2,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ToastContainer } from 'react-toastify';
 import { isAuthenticated } from './utils/auth.js';
 import 'react-toastify/dist/ReactToastify.css';
-import './styles/Global.css';
+// import './styles/Global.css';
+import './index.css';
 
 import Landing from './pages/Landing.jsx';
 import Login from './pages/Login.jsx';
