@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
 import User from '../models/User.js'
+import { sendOTP, verifyOTP } from '../utils/otp.js'
 
 
 export const register = async (req, res) => {
@@ -14,11 +15,23 @@ export const register = async (req, res) => {
         if(existinguser) {
             return res.status(400).json({message : "User already exists. Try logging in"})
         }
-        const hashedpassword = await bcrypt.hash(password,10)
+        const salt=await bcrypt.genSalt(10);
+        const hashedpassword = await bcrypt.hash(password,salt);
         const newuser = new User({name, email, password : hashedpassword})
         await newuser.save()
-        const token = jwt.sign({id: newuser._id, email: newuser.email}, process.env.JWT_SECRET, {expiresIn: '1h'})
-        return res.status(201).json({message : "User registered successfully", user : newuser, token})
+
+        const result = await sendOTP(email);
+
+        if (!result.sent) {
+            await User.deleteOne({ _id: newuser._id });
+            return res.status(503).json({ message: "Unable to send OTP email. Please check mail settings and try again." });
+        }
+
+        return res.status(201).json({
+            message : "User registered successfully. OTP sent to your email.",
+            user : { id: newuser._id, name: newuser.name, email: newuser.email },
+            otpSent: result.sent
+        })
     } catch (error) {
         console.log(error);
         return res.status(500).json({message : "Internal server Error"})
@@ -38,10 +51,113 @@ export const login = async (req, res) => {
         if(!await bcrypt.compare(password, user.password)) {
             return res.status(400).json({message : "Invalid password"})
         }
-        const token = jwt.sign({id: user._id, email: user.email}, process.env.JWT_SECRET, {expiresIn: '1h'})
-        return res.status(200).json({message : "login successful", user, token})
+
+        const result = await sendOTP(user.email);
+
+        if (!result.sent) {
+            return res.status(503).json({ message: "Unable to send OTP email. Please check mail settings and try again." });
+        }
+
+        return res.status(200).json({
+            message : "OTP sent to your email. Please verify to complete login.",
+            user: { id: user._id, name: user.name, email: user.email },
+            otpSent: result.sent
+        })
     } catch (error) {
         console.log(error);
         return res.status(500).json({message : "Internal server Error"})
     }
 }
+
+export const verifyLoginOTP = async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+
+        if (!email || !otp) {
+            return res.status(400).json({ message: "Email and OTP are required" });
+        }
+
+        const otpResult = await verifyOTP(email, otp);
+        if (!otpResult.valid) {
+            return res.status(400).json({ message: otpResult.message });
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+        return res.status(200).json({
+            message: "Login successful",
+            user: { id: user._id, name: user.name, email: user.email },
+            token
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server Error" });
+    }
+};
+
+export const resendOTP = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: "Email is required" });
+        }
+
+        const result = await sendOTP(email);
+
+        if (!result.sent) {
+            return res.status(503).json({ message: "Unable to send OTP email. Please check mail settings and try again." });
+        }
+
+        return res.status(200).json({
+            message: "OTP sent successfully",
+            otpSent: result.sent
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server Error" });
+    }
+};
+
+export const updateProfile = async (req, res) => {
+    try {
+        const { id } = req.user;
+        const { name, email } = req.body;
+
+        if (!name && !email) {
+            return res.status(400).json({ message: "At least one field is required to update" });
+        }
+
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (email && email !== user.email) {
+            const existingUser = await User.findOne({ email });
+            if (existingUser) {
+                return res.status(400).json({ message: "Email already in use" });
+            }
+            user.email = email;
+        }
+
+        if (name) {
+            user.name = name;
+        }
+
+        await user.save();
+
+        return res.status(200).json({
+            message: "Profile updated successfully",
+            user: { id: user._id, name: user.name, email: user.email }
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server Error" });
+    }
+};

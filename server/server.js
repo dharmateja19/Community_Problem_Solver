@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import dotenv from 'dotenv'
 
 import connectDB from './config/connectDB.js';
@@ -7,10 +8,21 @@ import authMiddleware from './middleware/auth.js'
 import problemRoutes from './routes/problemRoutes.js'
 import solutionRoutes from './routes/solutionRoutes.js'
 import voteRoutes from './routes/voteRoutes.js'
+import discussionRoutes from './routes/discussionRoutes.js'
+import trackingRoutes from './routes/trackingRoutes.js'
+import notificationRoutes from './routes/notificationRoutes.js'
+import aiRoutes from './routes/aiRoutes.js'
 
 dotenv.config()
 
 const app = express()
+
+app.use(cors({
+    origin: ['http://localhost:5173', 'http://localhost:3000'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}))
 
 app.use(express.json())
 
@@ -18,6 +30,10 @@ app.use('/api/auth', authRoutes)
 app.use('/api/problems',authMiddleware, problemRoutes)
 app.use('/api/solutions', authMiddleware, solutionRoutes)
 app.use('/api/votes', authMiddleware, voteRoutes)
+app.use('/api/discussions', authMiddleware, discussionRoutes)
+app.use('/api/tracking', authMiddleware, trackingRoutes)
+app.use('/api/notifications', authMiddleware, notificationRoutes)
+app.use('/api/ai', authMiddleware, aiRoutes)
 
 app.get('/', (req, res) => res.send("Hello from server"))
 

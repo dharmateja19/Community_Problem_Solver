@@ -1,5 +1,7 @@
 import Solution from "../models/Solution.js";
 import Vote from "../models/Vote.js";
+import Problem from "../models/Problem.js";
+import { createNotification } from "../utils/notifications.js";
 
 export const voteSolution = async (req, res) => {
     try {
@@ -15,9 +17,23 @@ export const voteSolution = async (req, res) => {
         }
         const vote = new Vote({userId, solutionId})
         await vote.save()
-        await Solution.findByIdAndUpdate(solutionId, {
+        const updatedSolution = await Solution.findByIdAndUpdate(solutionId, {
             $inc: { votes: 1 }
-        });
+        }, { new: true });
+
+        const problem = await Problem.findById(solution.problemId);
+        if (problem && solution.user.toString() !== userId.toString()) {
+            await createNotification({
+                userId: solution.user,
+                title: "Your solution received a vote",
+                message: `Your solution for ${problem.title} received a new vote.`,
+                type: "vote",
+                link: `/problems/${problem._id}`,
+                emailSubject: "Your solution got a vote",
+                emailText: `A user voted for your solution on problem: ${problem.title}`
+            });
+        }
+
         res.status(200).json({message : "Vote added successfully"})
     } catch (error) {
         console.log(error);

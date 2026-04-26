@@ -1,9 +1,13 @@
 import { Router } from "express";
-import { register, login } from "../controllers/authController.js";
+import { register, login, verifyLoginOTP, resendOTP, updateProfile } from "../controllers/authController.js";
+import authMiddleware from "../middleware/auth.js";
 
 const router = Router()
 
 router.post('/register', register)
 router.post('/login', login)
+router.post('/verify-otp', verifyLoginOTP)
+router.post('/resend-otp', resendOTP)
+router.put('/profile', authMiddleware, updateProfile)
 
 export default router
