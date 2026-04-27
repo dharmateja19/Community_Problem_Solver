@@ -6,6 +6,11 @@ const discussionSchema = new mongoose.Schema({
         ref: "Problem",
         required: true
     },
+    solutionId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Solution",
+        default: null
+    },
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",

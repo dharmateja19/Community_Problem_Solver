@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar.jsx';
 import { Plus, Search, MapPin, Clock } from 'lucide-react';
@@ -17,6 +17,10 @@ const Problems = () => {
   const [sortBy, setSortBy] = useState('latest');
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
+  const [mapCoordsById, setMapCoordsById] = useState({});
+  const [mapLoadingIds, setMapLoadingIds] = useState({});
+  const mapCoordsRef = useRef({});
+  const mapLoadingRef = useRef({});
 
   useEffect(() => {
     fetchProblems();
@@ -26,6 +30,58 @@ const Problems = () => {
   useEffect(() => {
     applyFilters();
   }, [problems, searchTerm, statusFilter, sortBy]);
+
+  useEffect(() => {
+    mapCoordsRef.current = mapCoordsById;
+  }, [mapCoordsById]);
+
+  useEffect(() => {
+    mapLoadingRef.current = mapLoadingIds;
+  }, [mapLoadingIds]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const loadMaps = async () => {
+      const targets = filteredProblems.slice(0, 9);
+      for (const problem of targets) {
+        if (!problem?.location || mapCoordsRef.current[problem._id] || mapLoadingRef.current[problem._id]) {
+          continue;
+        }
+
+        setMapLoadingIds((prev) => ({ ...prev, [problem._id]: true }));
+
+        try {
+          const query = encodeURIComponent(problem.location);
+          const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${query}`, {
+            signal: controller.signal
+          });
+          const data = await res.json();
+          const first = data?.[0];
+          if (first) {
+            setMapCoordsById((prev) => ({
+              ...prev,
+              [problem._id]: { lat: Number(first.lat), lng: Number(first.lon) }
+            }));
+          }
+        } catch (error) {
+          if (error?.name === 'AbortError') {
+            break;
+          }
+        } finally {
+          setMapLoadingIds((prev) => ({ ...prev, [problem._id]: false }));
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
+    };
+
+    if (filteredProblems.length > 0) {
+      loadMaps();
+    }
+
+    return () => controller.abort();
+  }, [filteredProblems]);
 
   const fetchProblems = async () => {
     try {
@@ -89,6 +145,15 @@ const Problems = () => {
     open: 'bg-[#d8e5ff] text-[#12335f] border-[#9ec0ff]',
     'in-progress': 'bg-[#ffefcc] text-[#854d0e] border-[#f9cf73]',
     completed: 'bg-[#c9f1df] text-[#0b6f4a] border-[#82d8b3]'
+  };
+
+  const buildMapUrl = (lat, lng) => {
+    const delta = 0.01;
+    const left = lng - delta;
+    const right = lng + delta;
+    const top = lat + delta;
+    const bottom = lat - delta;
+    return `https://www.openstreetmap.org/export/embed.html?bbox=${left}%2C${bottom}%2C${right}%2C${top}&layer=mapnik&marker=${lat}%2C${lng}`;
   };
 
   return (
@@ -253,18 +318,33 @@ const Problems = () => {
                   </span>
                 </div>
 
-                <div className="w-full aspect-video rounded-lg overflow-hidden mt-auto bg-gradient-to-br from-[#d1fae5] to-[#a7f3d0]">
+                <div className="grid grid-cols-1 gap-3 mt-auto">
+                  <div className="w-full aspect-video rounded-lg overflow-hidden border border-gray-200 bg-gray-100 flex items-center justify-center">
+                    {mapCoordsById[problem._id] ? (
+                      <iframe
+                        title={`Map for ${problem.title}`}
+                        src={buildMapUrl(mapCoordsById[problem._id].lat, mapCoordsById[problem._id].lng)}
+                        className="w-full h-full pointer-events-none"
+                        loading="lazy"
+                      />
+                    ) : mapLoadingIds[problem._id] ? (
+                      <span className="text-sm text-gray-500">Loading map...</span>
+                    ) : (
+                      <span className="text-sm text-gray-500">Map not available</span>
+                    )}
+                  </div>
 
-                  <img
-                    src={
-                      problem.image
-                        ? problem.image
-                        : 'https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=800&q=80'
-                    }
-                    alt={problem.title}
-                    className="w-full h-full object-cover"
-                  />
-
+                  <div className="w-full aspect-video rounded-lg overflow-hidden border border-gray-200 bg-gradient-to-br from-[#d1fae5] to-[#a7f3d0]">
+                    <img
+                      src={
+                        problem.image
+                          ? problem.image
+                          : 'https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=800&q=80'
+                      }
+                      alt={problem.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                 </div>
 
               </div>

@@ -19,6 +19,8 @@ const CreateProblem = () => {
 
     const [preview, setPreview] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [geoLoading, setGeoLoading] = useState(false);
+    const [coordinates, setCoordinates] = useState(null);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -51,6 +53,74 @@ const CreateProblem = () => {
 
             reader.readAsDataURL(file);
         }
+    };
+
+    const buildMapUrl = (lat, lng) => {
+        const delta = 0.005;
+        const left = lng - delta;
+        const right = lng + delta;
+        const top = lat + delta;
+        const bottom = lat - delta;
+        return `https://www.openstreetmap.org/export/embed.html?bbox=${left}%2C${bottom}%2C${right}%2C${top}&layer=mapnik&marker=${lat}%2C${lng}`;
+    };
+
+    const handleUseLocation = async () => {
+        if (!navigator.geolocation) {
+            toast.error('Geolocation is not supported in this browser');
+            return;
+        }
+
+        if (navigator.permissions?.query) {
+            try {
+                const status = await navigator.permissions.query({ name: 'geolocation' });
+                if (status.state === 'denied') {
+                    toast.error('Location permission is denied. Allow it in your browser and try again.');
+                    return;
+                }
+            } catch {
+                // Permissions API not available or blocked, continue to request location
+            }
+        }
+
+        setGeoLoading(true);
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const { latitude, longitude } = position.coords;
+                setCoordinates({ lat: latitude, lng: longitude });
+
+                try {
+                    const res = await fetch(
+                        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+                    );
+                    const data = await res.json();
+                    const displayName = data?.display_name || `Lat ${latitude.toFixed(5)}, Lng ${longitude.toFixed(5)}`;
+                    setFormData((prev) => ({
+                        ...prev,
+                        location: displayName
+                    }));
+                } catch {
+                    setFormData((prev) => ({
+                        ...prev,
+                        location: `Lat ${latitude.toFixed(5)}, Lng ${longitude.toFixed(5)}`
+                    }));
+                } finally {
+                    setGeoLoading(false);
+                }
+            },
+            (error) => {
+                const message = error?.code === 1
+                    ? 'Location permission denied. Please allow it and try again.'
+                    : error?.code === 2
+                        ? 'Location unavailable. Please try again.'
+                        : error?.code === 3
+                            ? 'Location request timed out. Please try again.'
+                            : 'Unable to fetch your location.';
+                toast.error(message);
+                setGeoLoading(false);
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
     };
 
     const handleSubmit = async (e) => {
@@ -184,8 +254,16 @@ const CreateProblem = () => {
 
                         {/* Location */}
                         <div className="flex flex-col">
-                            <label className="text-gray-700 font-semibold mb-3">
-                                Location *
+                            <label className="flex items-center justify-between text-gray-700 font-semibold mb-3">
+                                <span>Location *</span>
+                                <button
+                                    type="button"
+                                    onClick={handleUseLocation}
+                                    className="text-[0.85rem] px-3 py-1.5 rounded-full border border-[#10b981] text-[#10b981] hover:bg-[#d1fae5] transition"
+                                    disabled={geoLoading}
+                                >
+                                    {geoLoading ? 'Locating...' : 'Use my location'}
+                                </button>
                             </label>
 
                             <input
@@ -201,6 +279,17 @@ const CreateProblem = () => {
                             <p className="text-[0.85rem] text-gray-500 mt-2">
                                 Where is this problem located? Be as specific as possible
                             </p>
+
+                            {coordinates && (
+                                <div className="mt-4 rounded-lg overflow-hidden border-2 border-[#d1fae5]">
+                                    <iframe
+                                        title="OpenStreetMap preview"
+                                        src={buildMapUrl(coordinates.lat, coordinates.lng)}
+                                        className="w-full h-[240px]"
+                                        loading="lazy"
+                                    />
+                                </div>
+                            )}
                         </div>
 
                         {/* Upload */}

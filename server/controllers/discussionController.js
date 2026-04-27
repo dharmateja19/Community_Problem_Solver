@@ -1,10 +1,11 @@
 import Discussion from "../models/Discussion.js";
 import Problem from "../models/Problem.js";
+import Solution from "../models/Solution.js";
 
 export const createDiscussion = async (req, res) => {
     try {
         const { problemId } = req.params;
-        const { message } = req.body;
+        const { message, solutionId } = req.body;
 
         if (!message) {
             return res.status(400).json({ message: "Discussion message is required" });
@@ -15,10 +16,20 @@ export const createDiscussion = async (req, res) => {
             return res.status(404).json({ message: "Problem Not Found" });
         }
 
+        let linkedSolutionId = null;
+        if (solutionId) {
+            const solution = await Solution.findById(solutionId);
+            if (!solution || solution.problemId.toString() !== problemId.toString()) {
+                return res.status(400).json({ message: "Invalid solution for this problem" });
+            }
+            linkedSolutionId = solutionId;
+        }
+
         const discussion = await Discussion.create({
             problemId,
             user: req.user.id,
-            message
+            message,
+            solutionId: linkedSolutionId
         });
 
         await discussion.populate("user", "name email");

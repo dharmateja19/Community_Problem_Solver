@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, MapPin, Users, TrendingUp, Zap } from 'lucide-react';
+import whatsappHero from '../assets/WhatsApp Image 2026-04-27 at 10.37.14 PM.jpeg';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -71,8 +72,14 @@ const Landing = () => {
           </div>
         </div>
 
-        {/* Right box */}
-        <div className="w-full h-[500px] rounded-xl border-[3px] border-dashed border-[#10b981] bg-gradient-to-br from-[#d1fae5] to-[#a7f3d0]">
+        {/* Right media */}
+        <div className="w-full h-[500px] rounded-xl border-[3px] border-[#10b981]/30 bg-[#ecfdf5] overflow-hidden flex items-center justify-center">
+          <img
+            src={whatsappHero}
+            alt="Community support"
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
         </div>
 
       </section>

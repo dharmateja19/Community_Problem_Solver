@@ -270,14 +270,66 @@ const ProblemDetail = () => {
   const [discussions, setDiscussions] = useState([]);
   const [aiSuggestions, setAiSuggestions] = useState([]);
   const [newSolution, setNewSolution] = useState('');
-  const [newDiscussion, setNewDiscussion] = useState('');
+  const [discussionDrafts, setDiscussionDrafts] = useState({});
   const [loadingAI, setLoadingAI] = useState(false);
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
+  const [mapCoords, setMapCoords] = useState(null);
+  const [mapLoading, setMapLoading] = useState(false);
+  const [mapError, setMapError] = useState('');
 
   useEffect(() => {
     fetchProblemDetails();
   }, [id]);
+
+  useEffect(() => {
+    if (!problem?.location) {
+      return;
+    }
+
+    const controller = new AbortController();
+    const fetchCoordinates = async () => {
+      try {
+        setMapLoading(true);
+        setMapError('');
+        const query = encodeURIComponent(problem.location);
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${query}`, {
+          signal: controller.signal
+        });
+        const data = await res.json();
+        const first = data?.[0];
+        if (!first) {
+          setMapCoords(null);
+          setMapError('Map not available for this location');
+          return;
+        }
+
+        setMapCoords({
+          lat: Number(first.lat),
+          lng: Number(first.lon)
+        });
+      } catch (error) {
+        if (error?.name !== 'AbortError') {
+          setMapError('Unable to load map for this location');
+        }
+      } finally {
+        setMapLoading(false);
+      }
+    };
+
+    fetchCoordinates();
+
+    return () => controller.abort();
+  }, [problem?.location]);
+
+  const buildMapUrl = (lat, lng) => {
+    const delta = 0.005;
+    const left = lng - delta;
+    const right = lng + delta;
+    const top = lat + delta;
+    const bottom = lat - delta;
+    return `https://www.openstreetmap.org/export/embed.html?bbox=${left}%2C${bottom}%2C${right}%2C${top}&layer=mapnik&marker=${lat}%2C${lng}`;
+  };
 
   const fetchProblemDetails = async () => {
     try {
@@ -320,21 +372,22 @@ const ProblemDetail = () => {
     }
   };
 
-  const handleAddDiscussion = async (e) => {
-    e.preventDefault();
+  const handleAddDiscussion = async (solutionId) => {
+    const message = discussionDrafts[solutionId] || '';
 
-    if (!newDiscussion.trim()) {
+    if (!message.trim()) {
       toast.error('Please enter a message');
       return;
     }
 
     try {
       const res = await API.post(`/discussions/create/${id}`, {
-        message: newDiscussion
+        message,
+        solutionId
       });
 
       setDiscussions([res.data.discussion, ...discussions]);
-      setNewDiscussion('');
+      setDiscussionDrafts((prev) => ({ ...prev, [solutionId]: '' }));
       toast.success('Message added!');
     } catch {
       toast.error('Failed to add message');
@@ -356,6 +409,15 @@ const ProblemDetail = () => {
     'in-progress': 'bg-amber-100 text-[#92400e]',
     completed: 'bg-[#d1fae5] text-[#065f46]'
   };
+
+  const discussionsBySolution = discussions.reduce((acc, discussion) => {
+    const key = discussion.solutionId || 'problem';
+    if (!acc[key]) {
+      acc[key] = [];
+    }
+    acc[key].push(discussion);
+    return acc;
+  }, {});
 
   if (loading) {
     return (
@@ -451,13 +513,38 @@ const ProblemDetail = () => {
 
             </div>
 
-            {problem.image && (
-              <div className="rounded-xl overflow-hidden max-h-[400px] mb-6">
-                <img
-                  src={problem.image}
-                  alt={problem.title}
-                  className="w-full h-full object-cover"
-                />
+            {(problem.image || mapCoords || mapLoading || mapError) && (
+              <div className="grid gap-4 md:grid-cols-1 grid-cols-2 mb-6">
+                {problem.image && (
+                  <div className="rounded-xl overflow-hidden border border-[#d1fae5] bg-white">
+                    <img
+                      src={problem.image}
+                      alt={problem.title}
+                      className="w-full h-[260px] object-cover"
+                    />
+                  </div>
+                )}
+
+                <div className="rounded-xl overflow-hidden border border-[#d1fae5] bg-white flex items-center justify-center min-h-[260px]">
+                  {mapLoading && (
+                    <div className="text-sm text-gray-500">Loading map...</div>
+                  )}
+
+                  {!mapLoading && mapCoords && (
+                    <iframe
+                      title="Problem location"
+                      src={buildMapUrl(mapCoords.lat, mapCoords.lng)}
+                      className="w-full h-[260px]"
+                      loading="lazy"
+                    />
+                  )}
+
+                  {!mapLoading && !mapCoords && mapError && (
+                    <div className="text-sm text-gray-500 px-4 text-center">
+                      {mapError}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -553,7 +640,10 @@ const ProblemDetail = () => {
             </form>
 
             <div className="space-y-4">
-              {solutions.map((solution) => (
+              {solutions.map((solution) => {
+                const solutionDiscussions = discussionsBySolution[solution._id] || [];
+
+                return (
                 <div key={solution._id} className="bg-gray-100 rounded-lg p-6 border-l-4 border-[#10b981]">
 
                   <div className="flex flex-wrap gap-3 mb-3 items-center">
@@ -587,46 +677,57 @@ const ProblemDetail = () => {
                     </button>
                   </div>
 
-                </div>
-              ))}
-            </div>
+                  <div className="mt-6 border-t border-gray-200 pt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-semibold text-[#065f46]">
+                        Discussions ({solutionDiscussions.length})
+                      </h3>
+                    </div>
 
-          </section>
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        handleAddDiscussion(solution._id);
+                      }}
+                      className="bg-white rounded-lg p-4 mb-4"
+                    >
+                      <textarea
+                        value={discussionDrafts[solution._id] || ''}
+                        onChange={(e) =>
+                          setDiscussionDrafts((prev) => ({
+                            ...prev,
+                            [solution._id]: e.target.value
+                          }))
+                        }
+                        placeholder="Add a comment on this solution..."
+                        rows="3"
+                        className="w-full border rounded-lg p-3 mb-3 outline-none focus:ring-2 focus:ring-[#10b981]"
+                      />
 
-          {/* Discussions */}
-          <section className="bg-white border-2 border-[#d1fae5] rounded-xl p-8">
+                      <button className="bg-[#10b981] hover:bg-[#065f46] text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2">
+                        <MessageSquare size={16} />
+                        Post Comment
+                      </button>
+                    </form>
 
-            <h2 className="text-[#065f46] text-xl font-bold mb-6">
-              Discussions ({discussions.length})
-            </h2>
+                    <div className="space-y-3">
+                      {solutionDiscussions.map((discussion) => (
+                        <div key={discussion._id} className="bg-white rounded-lg p-4 border border-gray-200">
+                          <div className="text-sm text-gray-500 mb-2">
+                            <strong className="text-gray-700">{discussion.user?.name}</strong> • {new Date(discussion.createdAt).toLocaleDateString()}
+                          </div>
 
-            <form onSubmit={handleAddDiscussion} className="bg-gray-100 rounded-lg p-6 mb-6">
-              <textarea
-                value={newDiscussion}
-                onChange={(e) => setNewDiscussion(e.target.value)}
-                placeholder="Share your thoughts..."
-                rows="4"
-                className="w-full border rounded-lg p-4 mb-4 outline-none focus:ring-2 focus:ring-[#10b981]"
-              />
-
-              <button className="bg-[#10b981] hover:bg-[#065f46] text-white px-5 py-2 rounded-lg font-semibold flex items-center gap-2">
-                <MessageSquare size={18} />
-                Post Message
-              </button>
-            </form>
-
-            <div className="space-y-4">
-              {discussions.map((discussion) => (
-                <div key={discussion._id} className="bg-gray-100 rounded-lg p-6 border-l-4 border-[#10b981]">
-                  <div className="text-sm text-gray-500 mb-2">
-                    <strong className="text-gray-700">{discussion.user?.name}</strong> • {new Date(discussion.createdAt).toLocaleDateString()}
+                          <p className="text-gray-700 leading-6">
+                            {discussion.message}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
 
-                  <p className="text-gray-700 leading-6">
-                    {discussion.message}
-                  </p>
                 </div>
-              ))}
+              );
+              })}
             </div>
 
           </section>

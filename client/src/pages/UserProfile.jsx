@@ -4,11 +4,11 @@ import Navbar from '../components/Navbar.jsx';
 import { Edit2, LogOut, MapPin, Star } from 'lucide-react';
 import { toast } from 'react-toastify';
 import API from '../utils/api.js';
-import { getAuthData, logout } from '../utils/auth.js';
+import { getAuthData, logout, setAuthData } from '../utils/auth.js';
 
 const UserProfile = () => {
   const navigate = useNavigate();
-  const { user: currentUser } = getAuthData();
+  const { user: currentUser, token } = getAuthData();
 
   const [user, setUser] = useState(currentUser);
   const [isEditing, setIsEditing] = useState(false);
@@ -115,7 +115,15 @@ const UserProfile = () => {
         email: editForm.email
       });
 
-      setUser(res.data.user);
+      const updatedUser = res.data.user;
+      setUser(updatedUser);
+      setEditForm({
+        name: updatedUser.name || '',
+        email: updatedUser.email || ''
+      });
+      if (token) {
+        setAuthData(updatedUser, token);
+      }
       setIsEditing(false);
 
       toast.success('Profile updated successfully!');
