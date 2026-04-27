@@ -382,7 +382,7 @@ const Problems = () => {
 
           </div>
 
-          <div className="flex md:flex-col gap-8">
+          <div className="flex md:flex-row justify-between gap-8">
 
             {/* Status */}
             <div className="flex md:flex-col md:items-start items-center gap-4">
