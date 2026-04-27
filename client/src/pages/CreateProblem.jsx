@@ -78,21 +78,21 @@ const CreateProblem = () => {
         setLoading(true);
 
         try {
-            const submitData = new FormData();
+            // const submitData = new FormData();
 
-            submitData.append('title', formData.title);
-            submitData.append('description', formData.description);
-            submitData.append('location', formData.location);
+            // submitData.append('title', formData.title);
+            // submitData.append('description', formData.description);
+            // submitData.append('location', formData.location);
 
-            if (formData.image) {
-                submitData.append('image', formData.image);
-            }
+            // if (formData.image) {
+            //     submitData.append('image', formData.image);
+            // }
 
-            const response = await API.post('/problems/create', submitData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
+            await setFormData({title : formData.title, description : formData.description, location : formData.location, image : formData.image})
+
+            // console.log(formData)
+
+            const response = await API.post('/problems/create', formData);
 
             toast.success('Problem reported successfully!');
             navigate(`/problems/${response.data.problem._id}`);
