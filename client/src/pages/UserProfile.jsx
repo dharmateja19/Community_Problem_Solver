@@ -37,6 +37,21 @@ const UserProfile = () => {
       return;
     }
 
+    const refreshUser = async () => {
+      try {
+        const res = await API.get('/auth/me');
+        if (res.data?.user && token) {
+          setAuthData(res.data.user, token);
+          setUser(res.data.user);
+          setEditForm({
+            name: res.data.user.name || '',
+            email: res.data.user.email || ''
+          });
+        }
+      } catch {}
+    };
+
+    refreshUser();
     fetchUserData();
   }, [currentUser]);
 

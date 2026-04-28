@@ -161,6 +161,23 @@ export const updateProfile = async (req, res) => {
     }
 };
 
+export const getMe = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select("name email role city volunteerStatus");
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        return res.status(200).json({
+            message: "User profile fetched",
+            user: { id: user._id, name: user.name, email: user.email, role: user.role, city: user.city, volunteerStatus: user.volunteerStatus }
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server Error" });
+    }
+};
+
 export const registerVolunteer = async (req, res) => {
     try {
         const { name, email, password, city } = req.body;
@@ -170,7 +187,7 @@ export const registerVolunteer = async (req, res) => {
 
         const existinguser = await User.findOne({ email });
         if (existinguser) {
-            return res.status(400).json({ message: "User already exists. Try logging in" });
+            return res.status(400).json({ message: "User already exists. Please log in and apply as a volunteer." });
         }
 
         const salt = await bcrypt.genSalt(10);
@@ -203,6 +220,40 @@ export const registerVolunteer = async (req, res) => {
                 volunteerStatus: newuser.volunteerStatus
             },
             otpSent: result.sent
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server Error" });
+    }
+};
+
+export const applyVolunteerForExistingUser = async (req, res) => {
+    try {
+        const { city } = req.body;
+        if (!city) {
+            return res.status(400).json({ message: "State is required" });
+        }
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (user.role === "volunteer" && user.volunteerStatus === "approved") {
+            return res.status(400).json({ message: "You are already an approved volunteer" });
+        }
+
+        if (user.volunteerStatus === "pending") {
+            return res.status(400).json({ message: "Your volunteer application is already pending" });
+        }
+
+        user.volunteerStatus = "pending";
+        user.city = city;
+        await user.save();
+
+        return res.status(200).json({
+            message: "Volunteer application submitted",
+            user: { id: user._id, name: user.name, email: user.email, role: user.role, city: user.city, volunteerStatus: user.volunteerStatus }
         });
     } catch (error) {
         console.log(error);

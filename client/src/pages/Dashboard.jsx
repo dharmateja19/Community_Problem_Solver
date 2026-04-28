@@ -12,6 +12,7 @@ import {
 import { toast } from "react-toastify";
 import API from "../utils/api.js";
 import { useAuthUser } from "../utils/useAuthUser.js";
+import { setAuthData } from "../utils/auth.js";
 import { useNavigate } from "react-router";
 
 const Dashboard = () => {
@@ -48,6 +49,17 @@ const Dashboard = () => {
 	};
 
 	useEffect(() => {
+		const refreshUser = async () => {
+			try {
+				const res = await API.get("/auth/me");
+				if (res.data?.user) {
+					setAuthData(res.data.user, localStorage.getItem("token") || "");
+				}
+			} catch {
+				// ignore profile refresh errors
+			}
+		};
+
 		const fetchDashboardData = async () => {
 			try {
 				const problemsRes = await API.get("/problems");
@@ -80,6 +92,7 @@ const Dashboard = () => {
 			}
 		};
 
+		refreshUser();
 		fetchDashboardData();
 	}, []);
 

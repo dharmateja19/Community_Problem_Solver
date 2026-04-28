@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, User, MapPin, ArrowRight } from 'lucide-react';
 import { toast } from 'react-toastify';
 import API from '../utils/api.js';
 import { REGIONS } from '../utils/regions.js';
+import { useAuthUser } from '../utils/useAuthUser.js';
 
 const VolunteerApply = () => {
   const navigate = useNavigate();
+  const { user } = useAuthUser();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -15,6 +17,16 @@ const VolunteerApply = () => {
     city: ''
   });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        name: user.name || '',
+        email: user.email || ''
+      }));
+    }
+  }, [user]);
 
   const handleChange = (e) => {
     setFormData({
@@ -31,7 +43,7 @@ const VolunteerApply = () => {
       return;
     }
 
-    if (formData.password.length < 6) {
+    if (!user && formData.password.length < 6) {
       toast.error('Password must be at least 6 characters');
       return;
     }
@@ -39,11 +51,19 @@ const VolunteerApply = () => {
     setLoading(true);
 
     try {
-      await API.post('/auth/register-volunteer', formData);
-      toast.success('Volunteer application submitted. OTP sent to your email');
-      navigate('/otp-verify', {
-        state: { email: formData.email }
-      });
+      if (user) {
+        const res = await API.post('/auth/volunteer-apply', {
+          city: formData.city
+        });
+        toast.success(res.data.message || 'Volunteer application submitted');
+        navigate('/dashboard');
+      } else {
+        await API.post('/auth/register-volunteer', formData);
+        toast.success('Volunteer application submitted. OTP sent to your email');
+        navigate('/otp-verify', {
+          state: { email: formData.email }
+        });
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Volunteer application failed');
     } finally {
@@ -64,59 +84,63 @@ const VolunteerApply = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5 mb-6">
-          <div>
-            <label className="block mb-2 font-medium text-gray-700">
-              Full Name
-            </label>
-            <div className="relative flex items-center">
-              <User size={20} className="absolute left-3 text-[#10b981]" />
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Enter your full name"
-                required
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg outline-none focus:border-[#10b981]"
-              />
-            </div>
-          </div>
+          {!user && (
+            <>
+              <div>
+                <label className="block mb-2 font-medium text-gray-700">
+                  Full Name
+                </label>
+                <div className="relative flex items-center">
+                  <User size={20} className="absolute left-3 text-[#10b981]" />
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="Enter your full name"
+                    required
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg outline-none focus:border-[#10b981]"
+                  />
+                </div>
+              </div>
 
-          <div>
-            <label className="block mb-2 font-medium text-gray-700">
-              Email Address
-            </label>
-            <div className="relative flex items-center">
-              <Mail size={20} className="absolute left-3 text-[#10b981]" />
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                placeholder="Enter your email"
-                required
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg outline-none focus:border-[#10b981]"
-              />
-            </div>
-          </div>
+              <div>
+                <label className="block mb-2 font-medium text-gray-700">
+                  Email Address
+                </label>
+                <div className="relative flex items-center">
+                  <Mail size={20} className="absolute left-3 text-[#10b981]" />
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="Enter your email"
+                    required
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg outline-none focus:border-[#10b981]"
+                  />
+                </div>
+              </div>
 
-          <div>
-            <label className="block mb-2 font-medium text-gray-700">
-              Password
-            </label>
-            <div className="relative flex items-center">
-              <Lock size={20} className="absolute left-3 text-[#10b981]" />
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Create a password"
-                required
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg outline-none focus:border-[#10b981]"
-              />
-            </div>
-          </div>
+              <div>
+                <label className="block mb-2 font-medium text-gray-700">
+                  Password
+                </label>
+                <div className="relative flex items-center">
+                  <Lock size={20} className="absolute left-3 text-[#10b981]" />
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="Create a password"
+                    required
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg outline-none focus:border-[#10b981]"
+                  />
+                </div>
+              </div>
+            </>
+          )}
 
           <div>
             <label className="block mb-2 font-medium text-gray-700">
