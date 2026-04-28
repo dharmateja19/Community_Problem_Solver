@@ -295,10 +295,10 @@ const CreateProblem = () => {
                             )}
                         </div>
 
-                        {/* City */}
+                        {/* State */}
                         <div className="flex flex-col">
                             <label className="text-gray-700 font-semibold mb-3">
-                                City/Region *
+                                State *
                             </label>
 
                             <select
@@ -308,7 +308,7 @@ const CreateProblem = () => {
                                 required
                                 className="p-3.5 border-2 border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:border-[#10b981] focus:ring-4 focus:ring-[#10b981]/10"
                             >
-                                <option value="">Select a city</option>
+                                <option value="">Select a state</option>
                                 {REGIONS.map((city) => (
                                     <option key={city} value={city}>
                                         {city}
@@ -317,7 +317,7 @@ const CreateProblem = () => {
                             </select>
 
                             <p className="text-[0.85rem] text-gray-500 mt-2">
-                                Choose the closest city for volunteer tracking
+                                Choose the state for volunteer tracking
                             </p>
                         </div>
 

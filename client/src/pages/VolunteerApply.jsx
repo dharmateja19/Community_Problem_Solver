@@ -120,7 +120,7 @@ const VolunteerApply = () => {
 
           <div>
             <label className="block mb-2 font-medium text-gray-700">
-              City/Region
+              State
             </label>
             <div className="relative flex items-center">
               <MapPin size={20} className="absolute left-3 text-[#10b981]" />
@@ -131,7 +131,7 @@ const VolunteerApply = () => {
                 required
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg outline-none focus:border-[#10b981] bg-white"
               >
-                <option value="">Select a city</option>
+                <option value="">Select a state</option>
                 {REGIONS.map((city) => (
                   <option key={city} value={city}>
                     {city}

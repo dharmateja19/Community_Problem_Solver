@@ -32,7 +32,7 @@ const RegionsDashboard = () => {
       <div className="flex-1 max-w-[1200px] mx-auto w-full px-4 py-8">
         <div className="flex items-center gap-3 mb-8">
           <BarChart3 size={22} className="text-[#10b981]" />
-          <h1 className="text-[2rem] font-bold text-[#065f46]">Region Analytics</h1>
+          <h1 className="text-[2rem] font-bold text-[#065f46]">State Analytics</h1>
         </div>
 
         {loading ? (

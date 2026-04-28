@@ -13,17 +13,17 @@ import Notification from "../models/Notification.js";
 dotenv.config();
 
 const primaryEmail = "suman.tati2005@gmail.com";
-const cities = [
-    "Delhi",
-    "Mumbai",
-    "Bengaluru",
-    "Hyderabad",
-    "Chennai",
-    "Kolkata",
-    "Pune",
-    "Ahmedabad",
-    "Jaipur",
-    "Lucknow"
+const volunteers = [
+    { state: "Andhra Pradesh", email: "andhra.volunteer@cps.local", password: "Andhra@123" },
+    { state: "Bihar", email: "bihar.volunteer@cps.local", password: "Bihar@123" },
+    { state: "Delhi", email: "delhi.volunteer@cps.local", password: "Delhi@123" },
+    { state: "Gujarat", email: "gujarat.volunteer@cps.local", password: "Gujarat@123" },
+    { state: "Karnataka", email: "karnataka.volunteer@cps.local", password: "Karnataka@123" },
+    { state: "Kerala", email: "kerala.volunteer@cps.local", password: "Kerala@123" },
+    { state: "Madhya Pradesh", email: "mp.volunteer@cps.local", password: "MP@123" },
+    { state: "Maharashtra", email: "maharashtra.volunteer@cps.local", password: "Maharashtra@123" },
+    { state: "Rajasthan", email: "rajasthan.volunteer@cps.local", password: "Rajasthan@123" },
+    { state: "Uttar Pradesh", email: "up.volunteer@cps.local", password: "UP@123" }
 ];
 
 const run = async () => {
@@ -64,23 +64,24 @@ const run = async () => {
         await helperUser.save();
     }
 
-    for (const city of cities) {
-        const email = `${city.toLowerCase().replace(/\s+/g, ".")}@volunteer.cps.local`;
+    for (const entry of volunteers) {
+        const { state, email, password } = entry;
+        const hashedVolunteerPassword = await bcrypt.hash(password, 10);
         let volunteer = await User.findOne({ email });
         if (!volunteer) {
             await User.create({
-                name: `${city} Volunteer`,
+                name: `${state} Volunteer`,
                 email,
-                password: hashedDefaultPassword,
+                password: hashedVolunteerPassword,
                 role: "volunteer",
                 volunteerStatus: "approved",
-                city
+                city: state
             });
         } else {
-            volunteer.password = hashedDefaultPassword;
+            volunteer.password = hashedVolunteerPassword;
             volunteer.role = "volunteer";
             volunteer.volunteerStatus = "approved";
-            volunteer.city = city;
+            volunteer.city = state;
             await volunteer.save();
         }
     }
@@ -101,7 +102,7 @@ const run = async () => {
                 description: "Dustbins are overflowing in Greenview Park and waste is spreading around. Needs urgent cleanup and more bins.",
                 user: primaryUser._id,
                 location: "Greenview Community Park",
-                city: "Mumbai",
+                city: "Maharashtra",
                 status: "in-progress"
             },
             {
@@ -109,7 +110,7 @@ const run = async () => {
                 description: "Multiple potholes are causing traffic and risk for school children on Lakeview School Route.",
                 user: primaryUser._id,
                 location: "Lakeview School Route",
-                city: "Bengaluru",
+                city: "Karnataka",
                 status: "completed"
             }
         ]);
@@ -184,7 +185,8 @@ const run = async () => {
         volunteerCount: await User.countDocuments({ role: "volunteer" }),
         totalDiscussions: await Discussion.countDocuments(),
         loginPasswordForSeededUsers: "123456",
-        superAdminPassword: "Suman@2005"
+        superAdminPassword: "Suman@2005",
+        volunteerLogins: volunteers
     };
 
     console.log(JSON.stringify(summary, null, 2));

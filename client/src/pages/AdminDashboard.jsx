@@ -151,7 +151,7 @@ const AdminDashboard = () => {
                       <div>
                         <p className="text-[#065f46] font-semibold">{volunteer.name}</p>
                         <p className="text-sm text-gray-500">{volunteer.email}</p>
-                        <p className="text-xs text-gray-500">Requested city: {volunteer.city || 'Not selected'}</p>
+                        <p className="text-xs text-gray-500">Requested state: {volunteer.city || 'Not selected'}</p>
                       </div>
                       <div className="flex md:flex-col gap-3">
                         <select

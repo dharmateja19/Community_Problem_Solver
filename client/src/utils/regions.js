@@ -1,12 +1,12 @@
 export const REGIONS = [
+  "Andhra Pradesh",
+  "Bihar",
   "Delhi",
-  "Mumbai",
-  "Bengaluru",
-  "Hyderabad",
-  "Chennai",
-  "Kolkata",
-  "Pune",
-  "Ahmedabad",
-  "Jaipur",
-  "Lucknow"
+  "Gujarat",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Rajasthan",
+  "Uttar Pradesh"
 ];

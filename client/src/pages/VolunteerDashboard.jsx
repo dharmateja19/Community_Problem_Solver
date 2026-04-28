@@ -66,7 +66,7 @@ const VolunteerDashboard = () => {
         <div className="flex md:flex-col items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-[2rem] font-bold text-[#065f46]">Volunteer Dashboard</h1>
-            <p className="text-gray-500">City coverage: {user.city || 'Not set'}</p>
+            <p className="text-gray-500">State coverage: {user.city || 'Not set'}</p>
           </div>
           <button
             onClick={() => navigate('/regions')}

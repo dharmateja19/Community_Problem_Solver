@@ -28,13 +28,35 @@ const Login = () => {
         setLoading(true);
 
         try {
-            await API.post('/auth/login', formData);
+            const response = await API.post('/auth/login', formData);
+            const user = response.data.user;
+            setAuthData(user, response.data.token);
 
-            navigate('/otp-verify', {
-                state: { email: formData.email, desiredRole: formData.role }
-            });
+            if (formData.role === 'admin' && user.role !== 'admin') {
+                toast.error('Admin access only. Please use a valid admin account.');
+                navigate('/dashboard');
+                return;
+            }
 
-            toast.success('OTP sent to your email');
+            if (formData.role === 'volunteer' && user.role !== 'volunteer') {
+                if (user.volunteerStatus === 'pending') {
+                    toast.info('Your volunteer application is pending approval.');
+                } else {
+                    toast.error('Volunteer access only. Apply to become a volunteer.');
+                }
+                navigate('/dashboard');
+                return;
+            }
+
+            toast.success('Login successful!');
+
+            if (user.role === 'admin') {
+                navigate('/admin');
+            } else if (user.role === 'volunteer') {
+                navigate('/volunteer');
+            } else {
+                navigate('/dashboard');
+            }
         } catch (error) {
             toast.error(error.response?.data?.message || 'Login failed');
         } finally {

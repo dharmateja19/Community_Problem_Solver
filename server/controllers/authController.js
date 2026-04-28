@@ -52,16 +52,12 @@ export const login = async (req, res) => {
             return res.status(400).json({message : "Invalid password"})
         }
 
-        const result = await sendOTP(user.email);
-
-        if (!result.sent) {
-            return res.status(503).json({ message: "Unable to send OTP email. Please check mail settings and try again." });
-        }
+        const token = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
         return res.status(200).json({
-            message : "OTP sent to your email. Please verify to complete login.",
+            message : "Login successful",
             user: { id: user._id, name: user.name, email: user.email, role: user.role, city: user.city, volunteerStatus: user.volunteerStatus },
-            otpSent: result.sent
+            token
         })
     } catch (error) {
         console.log(error);
@@ -107,7 +103,6 @@ export const resendOTP = async (req, res) => {
         if (!email) {
             return res.status(400).json({ message: "Email is required" });
         }
-
         const result = await sendOTP(email);
 
         if (!result.sent) {

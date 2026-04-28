@@ -690,7 +690,7 @@ const ProblemDetail = () => {
                 </p>
                 {problem.city && (
                   <p className="text-xs text-gray-500 mt-1">
-                    City: {problem.city}
+                    State: {problem.city}
                   </p>
                 )}
               </div>

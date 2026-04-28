@@ -4,16 +4,16 @@ import Solution from "../models/Solution.js";
 import Tracking from "../models/Tracking.js";
 
 const CITY_LIST = [
+    "Andhra Pradesh",
+    "Bihar",
     "Delhi",
-    "Mumbai",
-    "Bengaluru",
-    "Hyderabad",
-    "Chennai",
-    "Kolkata",
-    "Pune",
-    "Ahmedabad",
-    "Jaipur",
-    "Lucknow"
+    "Gujarat",
+    "Karnataka",
+    "Kerala",
+    "Madhya Pradesh",
+    "Maharashtra",
+    "Rajasthan",
+    "Uttar Pradesh"
 ];
 
 const buildStats = (problems = []) => {
