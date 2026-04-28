@@ -206,7 +206,7 @@ const UserProfile = () => {
       <div className="flex-1 max-w-[1000px] mx-auto w-full px-4 py-8">
 
         {/* Header */}
-        <section className="flex md:flex-col md:text-center justify-between gap-8 bg-gradient-to-br from-[#10b981] to-[#059669] text-white p-8 rounded-xl mb-8">
+        <section className="flex md:flex-col md:text-center justify-between gap-8 bg-gradient-to-br from-[#0d211b] to-[#33836a] text-white p-8 rounded-xl mb-8">
 
           <div className="flex md:flex-col items-center gap-6">
 
@@ -215,7 +215,7 @@ const UserProfile = () => {
             </div>
 
             <div>
-              <h1 className="text-[1.75rem] font-bold">
+              <h1 className="text-[1.75rem] text-white font-bold">
                 {user?.name}
               </h1>
 
@@ -235,7 +235,7 @@ const UserProfile = () => {
 
           </div>
 
-          <div className="flex md:flex-col gap-4">
+          <div className="flex md:flex-row justify-between gap-4">
 
             <button
               onClick={() => setIsEditing(!isEditing)}

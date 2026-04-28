@@ -5,6 +5,7 @@ import { Plus, Search, MapPin, Clock } from 'lucide-react';
 import { toast } from 'react-toastify';
 import API from '../utils/api.js';
 import { useAuthUser } from '../utils/useAuthUser.js';
+import noImage from '../assets/no-image.jpg';
 
 const Problems = () => {
   const navigate = useNavigate();
@@ -339,7 +340,7 @@ const Problems = () => {
                       src={
                         problem.image
                           ? problem.image
-                          : 'https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=800&q=80'
+                          : noImage
                       }
                       alt={problem.title}
                       className="w-full h-full object-cover"

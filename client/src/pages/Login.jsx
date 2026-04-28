@@ -32,21 +32,21 @@ const Login = () => {
             const user = response.data.user;
             setAuthData(user, response.data.token);
 
-            if (formData.role === 'admin' && user.role !== 'admin') {
-                toast.error('Admin access only. Please use a valid admin account.');
-                navigate('/dashboard');
-                return;
-            }
+            // if (formData.role === 'admin' && user.role !== 'admin') {
+            //     toast.error('Admin access only. Please use a valid admin account.');
+            //     navigate('/dashboard');
+            //     return;
+            // }
 
-            if (formData.role === 'volunteer' && user.role !== 'volunteer') {
-                if (user.volunteerStatus === 'pending') {
-                    toast.info('Your volunteer application is pending approval.');
-                } else {
-                    toast.error('Volunteer access only. Apply to become a volunteer.');
-                }
-                navigate('/dashboard');
-                return;
-            }
+            // if (formData.role === 'volunteer' && user.role !== 'volunteer') {
+            //     if (user.volunteerStatus === 'pending') {
+            //         toast.info('Your volunteer application is pending approval.');
+            //     } else {
+            //         toast.error('Volunteer access only. Apply to become a volunteer.');
+            //     }
+            //     navigate('/dashboard');
+            //     return;
+            // }
 
             toast.success('Login successful!');
 
@@ -100,7 +100,7 @@ const Login = () => {
                         </div>
                     </div>
 
-                    <div>
+                    {/* <div>
                         <label className="block mb-2 font-medium text-gray-700">
                             Login As
                         </label>
@@ -118,7 +118,7 @@ const Login = () => {
                                 <option value="admin">Admin</option>
                             </select>
                         </div>
-                    </div>
+                    </div> */}
 
                     <div>
                         <label className="block mb-2 font-medium text-gray-700">

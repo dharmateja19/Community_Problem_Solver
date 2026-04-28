@@ -99,19 +99,19 @@ const TrackingHistory = () => {
         <div className="flex flex-col gap-8">
 
           {/* Header */}
-          <section className="bg-gradient-to-r from-[#10b981] to-[#059669] text-white p-8 rounded-xl">
+          <section className="bg-gradient-to-r from-[#173229] to-[#059669] text-white p-8 rounded-xl">
 
-            <h1 className="text-[1.5rem] font-bold mb-4">
+            <h1 className="text-[1.5rem] font-bold mb-4 text-white">
               Tracking History
             </h1>
 
             <div className="flex md:flex-col gap-4 justify-between items-start">
 
-              <h2 className="text-[1.75rem] md:text-[1.3rem] font-semibold">
+              <h2 className="text-[1.75rem] md:text-[1.3rem] font-semibold text-white">
                 {problem.title}
               </h2>
 
-              <span className={`px-4 py-2 rounded-md text-[0.85rem] font-semibold uppercase whitespace-nowrap ${statusStyles[problem.status]}`}>
+              <span className={`px-4 py-2 rounded-md text-[0.85rem] text-white font-semibold uppercase whitespace-nowrap ${statusStyles[problem.status]}`}>
                 {getStatusLabel(problem.status)}
               </span>
 
