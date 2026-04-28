@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 
 import connectDB from './config/connectDB.js';
 import authRoutes from './routes/authRoutes.js'
-import authMiddleware from './middleware/auth.js'
+import authMiddleware from './middleware/authMiddleware.js'
 import problemRoutes from './routes/problemRoutes.js'
 import solutionRoutes from './routes/solutionRoutes.js'
 import voteRoutes from './routes/voteRoutes.js'
@@ -14,6 +14,7 @@ import notificationRoutes from './routes/notificationRoutes.js'
 import aiRoutes from './routes/aiRoutes.js'
 import analyticsRoutes from './routes/analyticsRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
+import imageUploadRoutes from './routes/imageUploadRoutes.js'
 
 dotenv.config()
 
@@ -43,6 +44,7 @@ app.use('/api/notifications', authMiddleware, notificationRoutes)
 app.use('/api/ai', authMiddleware, aiRoutes)
 app.use('/api/analytics', authMiddleware, analyticsRoutes)
 app.use('/api/admin', authMiddleware, adminRoutes)
+app.use('/api/images', authMiddleware, imageUploadRoutes)
 
 app.get('/', (req, res) => res.send("Hello from server"))
 

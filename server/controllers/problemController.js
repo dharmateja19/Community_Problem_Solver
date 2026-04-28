@@ -215,6 +215,16 @@ export const updateProblemStatus = async (req, res) => {
     }
 }
 
+export const getMyProblems = async (req, res) => {
+  try {
+    const problems = await Problem.find({ user: req.user.id });
+
+    res.json({ problems });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch user problems" });
+  }
+};
+
 export const requestCompletion = async (req, res) => {
     try {
         const id = req.params.id;
@@ -310,6 +320,8 @@ export const deleteProblem = async (req, res) => {
     try {
         const id = req.params.id
         const problem = await Problem.findById(id)
+        // console.log("problem.user:", problem.user);
+        // console.log("req.user:", req.user);
         if(!problem) {
             return res.status(404).json({message : "Problem Not Found"})
         }

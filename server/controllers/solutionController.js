@@ -65,6 +65,16 @@ export const getSolutionsByProblemId = async (req, res) => {
     }
 }
 
+export const getMySolutions = async (req, res) => {
+  try {
+    const solutions = await Solution.find({ user: req.user.id });
+
+    res.json({ solutions });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch user solutions" });
+  }
+};
+
 export const updateSolution = async (req, res) => {
     try {
         const id = req.params.id;

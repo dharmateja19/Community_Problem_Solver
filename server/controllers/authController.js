@@ -1,7 +1,9 @@
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-
 import User from '../models/User.js'
+import Problem from "../models/Problem.js";
+import Solution from "../models/Solution.js";
+import Discussion from "../models/Discussion.js";
 import { sendOTP, verifyOTP } from '../utils/otp.js'
 
 
@@ -176,6 +178,39 @@ export const getMe = async (req, res) => {
         console.log(error);
         return res.status(500).json({ message: "Internal server Error" });
     }
+};
+
+export const getProfileStats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const [problems, solutions, discussions] = await Promise.all([
+      Problem.find({ user: userId }),
+      Solution.find({ user: userId }),
+      Discussion.find({ user: userId }),
+    ]);
+
+    const totalProblems = problems.length;
+    const activeSolutions = solutions.length;
+
+    const totalVotes = solutions.reduce(
+      (sum, sol) => sum + (sol.votes || 0),
+      0
+    );
+
+    const discussionsMade = discussions.length;
+
+    res.json({
+      totalProblems,
+      activeSolutions,
+      totalVotes,
+      discussionsMade,
+      contributions: totalProblems + activeSolutions,
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch profile stats" });
+  }
 };
 
 export const registerVolunteer = async (req, res) => {

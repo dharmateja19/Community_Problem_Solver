@@ -185,18 +185,6 @@ const VolunteerApply = () => {
 						<ArrowRight size={18} />
 					</button>
 				</form>
-
-				<div className="text-center pt-4 border-t border-gray-200">
-					<p className="text-[0.9rem] text-gray-600">
-						Already have an account?{" "}
-						<Link
-							to="/login"
-							className="text-[#10b981] font-semibold hover:text-[#065f46]"
-						>
-							Sign in here
-						</Link>
-					</p>
-				</div>
 			</div>
 		</div>
 	);

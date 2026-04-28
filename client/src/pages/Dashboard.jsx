@@ -7,7 +7,7 @@ import {
 	CheckCircle,
 	MapPin,
 	User,
-	UserCheck
+	UserCheck,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import API from "../utils/api.js";
@@ -17,7 +17,7 @@ import { useNavigate } from "react-router";
 
 const Dashboard = () => {
 	const { user } = useAuthUser();
-    const navigate = useNavigate();
+	const navigate = useNavigate();
 	const [stats, setStats] = useState({
 		totalProblems: 0,
 		activeSolutions: 0,
@@ -128,7 +128,7 @@ const Dashboard = () => {
 					</button>
 				</section>
 
-				{user?.role === "user" && user?.volunteerStatus !== "approved" && (
+				{/* {user?.role === "user" && user?.volunteerStatus !== "approved" && (
 					<section className="mb-8 bg-gradient-to-br from-[#d1fae5] to-[#a7f3d0] border-2 border-[#10b981] rounded-xl p-6 flex md:flex-col items-center justify-between gap-4">
 						<div>
 							<h2 className="text-[1.25rem] font-bold text-[#065f46]">
@@ -150,6 +150,44 @@ const Dashboard = () => {
 							<UserCheck size={18} />
 							Apply as Volunteer
 						</button>
+					</section>
+				)} */}
+
+				{user?.role === "user" && user?.volunteerStatus !== "approved" && (
+					<section className="mb-8 bg-gradient-to-br from-[#d1fae5] to-[#a7f3d0] border-2 border-[#10b981] rounded-xl p-6 flex md:flex-col items-center justify-between gap-4">
+						<div>
+							<h2 className="text-[1.25rem] font-bold text-[#065f46]">
+								Become a Community Volunteer
+							</h2>
+
+							<p className="text-sm text-gray-600">
+								Help verify issues in your city and approve completion requests.
+							</p>
+
+							{/* {user?.volunteerStatus === "pending" && (
+								<p className="text-xs text-amber-700 mt-2">
+									Your application is pending approval.
+								</p>
+							)} */}
+						</div>
+
+						{user?.volunteerStatus === "pending" ? (
+							<button
+								disabled
+								className="bg-gray-200 text-gray-500 px-4 py-2 rounded-lg font-semibold cursor-not-allowed flex items-center gap-2"
+							>
+								<UserCheck size={18} />
+								Pending Approval
+							</button>
+						) : (
+							<button
+								onClick={() => navigate("/volunteer-apply")}
+								className="bg-white border border-[#10b981] text-[#10b981] hover:bg-[#10b981] hover:text-white px-4 py-2 rounded-lg font-semibold flex items-center gap-2"
+							>
+								<UserCheck size={18} />
+								Apply as Volunteer
+							</button>
+						)}
 					</section>
 				)}
 
