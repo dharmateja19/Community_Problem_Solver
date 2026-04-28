@@ -177,6 +177,40 @@ const Navbar = ({ user, notifications = [] }) => {
                         Notifications
                     </button>
 
+                    {user?.role === 'volunteer' && (
+                        <button
+                            onClick={() => navigate('/volunteer')}
+                            className={navLinkClass('/volunteer')}
+                        >
+                            Volunteer
+                        </button>
+                    )}
+
+                    {user?.role === 'admin' && (
+                        <button
+                            onClick={() => navigate('/admin')}
+                            className={navLinkClass('/admin')}
+                        >
+                            Admin
+                        </button>
+                    )}
+
+                    {user && user.role === 'user' && user.volunteerStatus !== 'approved' && (
+                        <button
+                            onClick={() => navigate('/volunteer-apply')}
+                            className={navLinkClass('/volunteer-apply')}
+                        >
+                            Volunteer Apply
+                        </button>
+                    )}
+
+                    <button
+                        onClick={() => navigate('/regions')}
+                        className={navLinkClass('/regions')}
+                    >
+                        Regions
+                    </button>
+
                     {user && (
                         <button
                             onClick={() => navigate('/profile')}
@@ -291,6 +325,52 @@ const Navbar = ({ user, notifications = [] }) => {
                             className={navLinkClass('/notifications')}
                         >
                             Notifications
+                        </button>
+
+                        {user?.role === 'volunteer' && (
+                            <button
+                                onClick={() => {
+                                    navigate('/volunteer');
+                                    setMobileMenuOpen(false);
+                                }}
+                                className={navLinkClass('/volunteer')}
+                            >
+                                Volunteer
+                            </button>
+                        )}
+
+                        {user?.role === 'admin' && (
+                            <button
+                                onClick={() => {
+                                    navigate('/admin');
+                                    setMobileMenuOpen(false);
+                                }}
+                                className={navLinkClass('/admin')}
+                            >
+                                Admin
+                            </button>
+                        )}
+
+                        {user && user.role === 'user' && user.volunteerStatus !== 'approved' && (
+                            <button
+                                onClick={() => {
+                                    navigate('/volunteer-apply');
+                                    setMobileMenuOpen(false);
+                                }}
+                                className={navLinkClass('/volunteer-apply')}
+                            >
+                                Volunteer Apply
+                            </button>
+                        )}
+
+                        <button
+                            onClick={() => {
+                                navigate('/regions');
+                                setMobileMenuOpen(false);
+                            }}
+                            className={navLinkClass('/regions')}
+                        >
+                            Regions
                         </button>
 
                         {user && (

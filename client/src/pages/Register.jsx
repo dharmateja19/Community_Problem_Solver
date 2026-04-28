@@ -179,6 +179,16 @@ const Register = () => {
                             Sign in here
                         </Link>
                     </p>
+
+                    <p className="text-[0.9rem] text-gray-600 mt-2">
+                        Want to help as a volunteer?{' '}
+                        <Link
+                            to="/volunteer-apply"
+                            className="text-[#10b981] font-semibold hover:text-[#065f46]"
+                        >
+                            Apply here
+                        </Link>
+                    </p>
                 </div>
 
             </div>

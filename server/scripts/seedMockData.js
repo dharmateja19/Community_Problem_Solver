@@ -13,21 +13,38 @@ import Notification from "../models/Notification.js";
 dotenv.config();
 
 const primaryEmail = "suman.tati2005@gmail.com";
+const cities = [
+    "Delhi",
+    "Mumbai",
+    "Bengaluru",
+    "Hyderabad",
+    "Chennai",
+    "Kolkata",
+    "Pune",
+    "Ahmedabad",
+    "Jaipur",
+    "Lucknow"
+];
 
 const run = async () => {
     await mongoose.connect(process.env.MONGODB_URL);
 
     const hashedDefaultPassword = await bcrypt.hash("123456", 10);
+    const hashedAdminPassword = await bcrypt.hash("Suman@2005", 10);
 
     let primaryUser = await User.findOne({ email: primaryEmail });
     if (!primaryUser) {
         primaryUser = await User.create({
             name: "Suman Tati",
             email: primaryEmail,
-            password: hashedDefaultPassword
+            password: hashedAdminPassword,
+            role: "admin",
+            volunteerStatus: "approved"
         });
     } else {
-        primaryUser.password = hashedDefaultPassword;
+        primaryUser.password = hashedAdminPassword;
+        primaryUser.role = "admin";
+        primaryUser.volunteerStatus = "approved";
         await primaryUser.save();
     }
 
@@ -36,11 +53,36 @@ const run = async () => {
         helperUser = await User.create({
             name: "Charan Mock",
             email: "charan.mock@cps.local",
-            password: hashedDefaultPassword
+            password: hashedDefaultPassword,
+            role: "user",
+            volunteerStatus: "none"
         });
     } else {
         helperUser.password = hashedDefaultPassword;
+        helperUser.role = helperUser.role || "user";
+        helperUser.volunteerStatus = helperUser.volunteerStatus || "none";
         await helperUser.save();
+    }
+
+    for (const city of cities) {
+        const email = `${city.toLowerCase().replace(/\s+/g, ".")}@volunteer.cps.local`;
+        let volunteer = await User.findOne({ email });
+        if (!volunteer) {
+            await User.create({
+                name: `${city} Volunteer`,
+                email,
+                password: hashedDefaultPassword,
+                role: "volunteer",
+                volunteerStatus: "approved",
+                city
+            });
+        } else {
+            volunteer.password = hashedDefaultPassword;
+            volunteer.role = "volunteer";
+            volunteer.volunteerStatus = "approved";
+            volunteer.city = city;
+            await volunteer.save();
+        }
     }
 
     const existing = await Problem.find({ user: primaryUser._id }).limit(1);
@@ -51,6 +93,7 @@ const run = async () => {
                 description: "The streetlight near the bus stop on Main Road has not been working for over a week. Area is dark at night and unsafe.",
                 user: primaryUser._id,
                 location: "Main Road Bus Stop",
+                city: "Delhi",
                 status: "open"
             },
             {
@@ -58,6 +101,7 @@ const run = async () => {
                 description: "Dustbins are overflowing in Greenview Park and waste is spreading around. Needs urgent cleanup and more bins.",
                 user: primaryUser._id,
                 location: "Greenview Community Park",
+                city: "Mumbai",
                 status: "in-progress"
             },
             {
@@ -65,6 +109,7 @@ const run = async () => {
                 description: "Multiple potholes are causing traffic and risk for school children on Lakeview School Route.",
                 user: primaryUser._id,
                 location: "Lakeview School Route",
+                city: "Bengaluru",
                 status: "completed"
             }
         ]);
@@ -136,8 +181,10 @@ const run = async () => {
         primaryUserId: String(primaryUser._id),
         problemsByPrimaryUser: await Problem.countDocuments({ user: primaryUser._id }),
         helperUserSolutions: await Solution.countDocuments({ user: helperUser._id }),
+        volunteerCount: await User.countDocuments({ role: "volunteer" }),
         totalDiscussions: await Discussion.countDocuments(),
-        loginPasswordForSeededUsers: "123456"
+        loginPasswordForSeededUsers: "123456",
+        superAdminPassword: "Suman@2005"
     };
 
     console.log(JSON.stringify(summary, null, 2));

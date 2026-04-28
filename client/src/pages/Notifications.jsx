@@ -3,10 +3,10 @@ import Navbar from '../components/Navbar.jsx';
 import { Bell, CheckCheck, Check } from 'lucide-react';
 import { toast } from 'react-toastify';
 import API from '../utils/api.js';
-import { getAuthData } from '../utils/auth.js';
+import { useAuthUser } from '../utils/useAuthUser.js';
 
 const Notifications = () => {
-    const { user } = getAuthData();
+    const { user } = useAuthUser();
 
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);

@@ -4,11 +4,12 @@ import Navbar from '../components/Navbar.jsx';
 import { Edit2, LogOut, MapPin, Star } from 'lucide-react';
 import { toast } from 'react-toastify';
 import API from '../utils/api.js';
-import { getAuthData, logout, setAuthData } from '../utils/auth.js';
+import { logout, setAuthData } from '../utils/auth.js';
+import { useAuthUser } from '../utils/useAuthUser.js';
 
 const UserProfile = () => {
   const navigate = useNavigate();
-  const { user: currentUser, token } = getAuthData();
+  const { user: currentUser, token } = useAuthUser();
 
   const [user, setUser] = useState(currentUser);
   const [isEditing, setIsEditing] = useState(false);
@@ -205,6 +206,15 @@ const UserProfile = () => {
 
               <p className="mt-2 text-[0.95rem] opacity-90">
                 {user?.email}
+              </p>
+
+              <p className="mt-2 text-[0.85rem] uppercase tracking-wide">
+                Role: {user?.role || 'user'}
+                {user?.volunteerStatus && user?.role === 'user' && (
+                  <span className="ml-2 text-[0.75rem] bg-white/20 px-2 py-1 rounded-full">
+                    Volunteer {user.volunteerStatus}
+                  </span>
+                )}
               </p>
             </div>
 

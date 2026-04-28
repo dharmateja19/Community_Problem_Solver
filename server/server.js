@@ -12,6 +12,8 @@ import discussionRoutes from './routes/discussionRoutes.js'
 import trackingRoutes from './routes/trackingRoutes.js'
 import notificationRoutes from './routes/notificationRoutes.js'
 import aiRoutes from './routes/aiRoutes.js'
+import analyticsRoutes from './routes/analyticsRoutes.js'
+import adminRoutes from './routes/adminRoutes.js'
 
 dotenv.config()
 
@@ -39,6 +41,8 @@ app.use('/api/discussions', authMiddleware, discussionRoutes)
 app.use('/api/tracking', authMiddleware, trackingRoutes)
 app.use('/api/notifications', authMiddleware, notificationRoutes)
 app.use('/api/ai', authMiddleware, aiRoutes)
+app.use('/api/analytics', authMiddleware, analyticsRoutes)
+app.use('/api/admin', authMiddleware, adminRoutes)
 
 app.get('/', (req, res) => res.send("Hello from server"))
 

@@ -10,6 +10,7 @@ const OTPVerify = () => {
     const location = useLocation();
 
     const email = location.state?.email || '';
+    const desiredRole = location.state?.desiredRole || 'user';
 
     const [otp, setOtp] = useState(['', '', '', '', '', '']);
     const [loading, setLoading] = useState(false);
@@ -86,10 +87,34 @@ const OTPVerify = () => {
                 otp: otpString
             });
 
-            setAuthData(response.data.user, response.data.token);
+            const user = response.data.user;
+            setAuthData(user, response.data.token);
+
+            if (desiredRole === 'admin' && user.role !== 'admin') {
+                toast.error('Admin access only. Please use a valid admin account.');
+                navigate('/dashboard');
+                return;
+            }
+
+            if (desiredRole === 'volunteer' && user.role !== 'volunteer') {
+                if (user.volunteerStatus === 'pending') {
+                    toast.info('Your volunteer application is pending approval.');
+                } else {
+                    toast.error('Volunteer access only. Apply to become a volunteer.');
+                }
+                navigate('/dashboard');
+                return;
+            }
 
             toast.success('Login successful!');
-            navigate('/dashboard');
+
+            if (user.role === 'admin') {
+                navigate('/admin');
+            } else if (user.role === 'volunteer') {
+                navigate('/volunteer');
+            } else {
+                navigate('/dashboard');
+            }
 
         } catch (error) {
             toast.error(

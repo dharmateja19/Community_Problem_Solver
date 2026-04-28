@@ -4,12 +4,12 @@ import Navbar from '../components/Navbar.jsx';
 import { ArrowLeft, Calendar, User } from 'lucide-react';
 import { toast } from 'react-toastify';
 import API from '../utils/api.js';
-import { getAuthData } from '../utils/auth.js';
+import { useAuthUser } from '../utils/useAuthUser.js';
 
 const TrackingHistory = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = getAuthData();
+  const { user } = useAuthUser();
 
   const [problem, setProblems] = useState(null);
   const [tracking, setTracking] = useState([]);

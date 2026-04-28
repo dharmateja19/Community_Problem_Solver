@@ -20,10 +20,23 @@ const problemSchema = new mongoose.Schema({
         type : String,
         required : true
     },
+    city: {
+        type: String,
+        required: true
+    },
     status : {
         type : String,
         enum : ["open", "in-progress", "completed"],
         default : "open"
+    },
+    selectedSolutionId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Solution",
+        default: null
+    },
+    completionRequested: {
+        type: Boolean,
+        default: false
     }
 }, {timestamps : true})
 

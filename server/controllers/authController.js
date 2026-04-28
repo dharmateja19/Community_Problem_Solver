@@ -7,7 +7,7 @@ import { sendOTP, verifyOTP } from '../utils/otp.js'
 
 export const register = async (req, res) => {
     try {
-        const {name, email, password} = req.body;
+        const {name, email, password, city} = req.body;
         if(!name || !email || !password) {
             return res.status(400).json({message : "All fields are mandatory"})
         }
@@ -17,7 +17,7 @@ export const register = async (req, res) => {
         }
         const salt=await bcrypt.genSalt(10);
         const hashedpassword = await bcrypt.hash(password,salt);
-        const newuser = new User({name, email, password : hashedpassword})
+        const newuser = new User({name, email, password : hashedpassword, city: city || "", role: "user", volunteerStatus: "none"})
         await newuser.save()
 
         const result = await sendOTP(email);
@@ -29,7 +29,7 @@ export const register = async (req, res) => {
 
         return res.status(201).json({
             message : "User registered successfully. OTP sent to your email.",
-            user : { id: newuser._id, name: newuser.name, email: newuser.email },
+            user : { id: newuser._id, name: newuser.name, email: newuser.email, role: newuser.role, city: newuser.city, volunteerStatus: newuser.volunteerStatus },
             otpSent: result.sent
         })
     } catch (error) {
@@ -60,7 +60,7 @@ export const login = async (req, res) => {
 
         return res.status(200).json({
             message : "OTP sent to your email. Please verify to complete login.",
-            user: { id: user._id, name: user.name, email: user.email },
+            user: { id: user._id, name: user.name, email: user.email, role: user.role, city: user.city, volunteerStatus: user.volunteerStatus },
             otpSent: result.sent
         })
     } catch (error) {
@@ -91,7 +91,7 @@ export const verifyLoginOTP = async (req, res) => {
 
         return res.status(200).json({
             message: "Login successful",
-            user: { id: user._id, name: user.name, email: user.email },
+            user: { id: user._id, name: user.name, email: user.email, role: user.role, city: user.city, volunteerStatus: user.volunteerStatus },
             token
         });
     } catch (error) {
@@ -127,9 +127,9 @@ export const resendOTP = async (req, res) => {
 export const updateProfile = async (req, res) => {
     try {
         const { id } = req.user;
-        const { name, email } = req.body;
+        const { name, email, city } = req.body;
 
-        if (!name && !email) {
+        if (!name && !email && !city) {
             return res.status(400).json({ message: "At least one field is required to update" });
         }
 
@@ -150,11 +150,64 @@ export const updateProfile = async (req, res) => {
             user.name = name;
         }
 
+        if (city !== undefined) {
+            user.city = city || "";
+        }
+
         await user.save();
 
         return res.status(200).json({
             message: "Profile updated successfully",
-            user: { id: user._id, name: user.name, email: user.email }
+            user: { id: user._id, name: user.name, email: user.email, role: user.role, city: user.city, volunteerStatus: user.volunteerStatus }
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server Error" });
+    }
+};
+
+export const registerVolunteer = async (req, res) => {
+    try {
+        const { name, email, password, city } = req.body;
+        if (!name || !email || !password || !city) {
+            return res.status(400).json({ message: "Name, email, password, and city are mandatory" });
+        }
+
+        const existinguser = await User.findOne({ email });
+        if (existinguser) {
+            return res.status(400).json({ message: "User already exists. Try logging in" });
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedpassword = await bcrypt.hash(password, salt);
+        const newuser = new User({
+            name,
+            email,
+            password: hashedpassword,
+            role: "user",
+            volunteerStatus: "pending",
+            city
+        });
+
+        await newuser.save();
+
+        const result = await sendOTP(email);
+        if (!result.sent) {
+            await User.deleteOne({ _id: newuser._id });
+            return res.status(503).json({ message: "Unable to send OTP email. Please check mail settings and try again." });
+        }
+
+        return res.status(201).json({
+            message: "Volunteer application submitted. OTP sent to your email.",
+            user: {
+                id: newuser._id,
+                name: newuser.name,
+                email: newuser.email,
+                role: newuser.role,
+                city: newuser.city,
+                volunteerStatus: newuser.volunteerStatus
+            },
+            otpSent: result.sent
         });
     } catch (error) {
         console.log(error);

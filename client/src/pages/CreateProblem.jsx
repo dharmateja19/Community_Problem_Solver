@@ -4,16 +4,18 @@ import Navbar from '../components/Navbar.jsx';
 import { ArrowLeft, Upload } from 'lucide-react';
 import { toast } from 'react-toastify';
 import API from '../utils/api.js';
-import { getAuthData } from '../utils/auth.js';
+import { useAuthUser } from '../utils/useAuthUser.js';
+import { REGIONS } from '../utils/regions.js';
 
 const CreateProblem = () => {
     const navigate = useNavigate();
-    const { user } = getAuthData();
+    const { user } = useAuthUser();
 
     const [formData, setFormData] = useState({
         title: '',
         description: '',
         location: '',
+        city: '',
         image: null
     });
 
@@ -129,7 +131,8 @@ const CreateProblem = () => {
         if (
             !formData.title.trim() ||
             !formData.description.trim() ||
-            !formData.location.trim()
+            !formData.location.trim() ||
+            !formData.city.trim()
         ) {
             toast.error('Please fill in all required fields');
             return;
@@ -290,6 +293,32 @@ const CreateProblem = () => {
                                     />
                                 </div>
                             )}
+                        </div>
+
+                        {/* City */}
+                        <div className="flex flex-col">
+                            <label className="text-gray-700 font-semibold mb-3">
+                                City/Region *
+                            </label>
+
+                            <select
+                                name="city"
+                                value={formData.city}
+                                onChange={handleChange}
+                                required
+                                className="p-3.5 border-2 border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:border-[#10b981] focus:ring-4 focus:ring-[#10b981]/10"
+                            >
+                                <option value="">Select a city</option>
+                                {REGIONS.map((city) => (
+                                    <option key={city} value={city}>
+                                        {city}
+                                    </option>
+                                ))}
+                            </select>
+
+                            <p className="text-[0.85rem] text-gray-500 mt-2">
+                                Choose the closest city for volunteer tracking
+                            </p>
                         </div>
 
                         {/* Upload */}

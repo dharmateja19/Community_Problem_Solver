@@ -13,6 +13,20 @@ const userSchema = new mongoose.Schema({
     password : {
         type : String,
         required : true
+    },
+    role: {
+        type: String,
+        enum: ["user", "volunteer", "admin"],
+        default: "user"
+    },
+    volunteerStatus: {
+        type: String,
+        enum: ["none", "pending", "approved", "rejected"],
+        default: "none"
+    },
+    city: {
+        type: String,
+        default: ""
     }
 }, {timestamps : true});
 

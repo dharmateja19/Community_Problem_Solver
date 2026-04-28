@@ -4,11 +4,11 @@ import Navbar from '../components/Navbar.jsx';
 import { Plus, Search, MapPin, Clock } from 'lucide-react';
 import { toast } from 'react-toastify';
 import API from '../utils/api.js';
-import { getAuthData } from '../utils/auth.js';
+import { useAuthUser } from '../utils/useAuthUser.js';
 
 const Problems = () => {
   const navigate = useNavigate();
-  const { user } = getAuthData();
+  const { user } = useAuthUser();
 
   const [problems, setProblems] = useState([]);
   const [filteredProblems, setFilteredProblems] = useState([]);

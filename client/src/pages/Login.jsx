@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Users } from 'lucide-react';
 import { toast } from 'react-toastify';
 import API from '../utils/api.js';
 import { setAuthData } from '../utils/auth.js';
@@ -10,7 +10,8 @@ const Login = () => {
 
     const [formData, setFormData] = useState({
         email: '',
-        password: ''
+        password: '',
+        role: 'user'
     });
 
     const [loading, setLoading] = useState(false);
@@ -30,7 +31,7 @@ const Login = () => {
             await API.post('/auth/login', formData);
 
             navigate('/otp-verify', {
-                state: { email: formData.email }
+                state: { email: formData.email, desiredRole: formData.role }
             });
 
             toast.success('OTP sent to your email');
@@ -74,6 +75,26 @@ const Login = () => {
                                 required
                                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg outline-none focus:border-[#10b981]"
                             />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block mb-2 font-medium text-gray-700">
+                            Login As
+                        </label>
+
+                        <div className="relative flex items-center">
+                            <Users size={20} className="absolute left-3 text-[#10b981]" />
+                            <select
+                                name="role"
+                                value={formData.role}
+                                onChange={handleChange}
+                                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg outline-none focus:border-[#10b981] bg-white"
+                            >
+                                <option value="user">User</option>
+                                <option value="volunteer">Volunteer</option>
+                                <option value="admin">Admin</option>
+                            </select>
                         </div>
                     </div>
 

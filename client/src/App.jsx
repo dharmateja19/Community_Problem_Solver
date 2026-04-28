@@ -16,6 +16,10 @@ import CreateProblem from './pages/CreateProblem.jsx';
 import UserProfile from './pages/UserProfile.jsx';
 import TrackingHistory from './pages/TrackingHistory.jsx';
 import Notifications from './pages/Notifications.jsx';
+import VolunteerDashboard from './pages/VolunteerDashboard.jsx';
+import RegionsDashboard from './pages/RegionsDashboard.jsx';
+import VolunteerApply from './pages/VolunteerApply.jsx';
+import AdminDashboard from './pages/AdminDashboard.jsx';
 
 const PrivateRoute = ({ children }) => {
     return isAuthenticated() ? children : <Navigate to="/login" />;
@@ -41,6 +45,7 @@ function App() {
                 <Route path="/" element={<Landing />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/volunteer-apply" element={<VolunteerApply />} />
                 <Route path="/otp-verify" element={<OTPVerify />} />
                 
                 <Route 
@@ -102,6 +107,33 @@ function App() {
                     element={
                         <PrivateRoute>
                             <Notifications />
+                        </PrivateRoute>
+                    } 
+                />
+
+                <Route 
+                    path="/volunteer" 
+                    element={
+                        <PrivateRoute>
+                            <VolunteerDashboard />
+                        </PrivateRoute>
+                    } 
+                />
+
+                <Route 
+                    path="/regions" 
+                    element={
+                        <PrivateRoute>
+                            <RegionsDashboard />
+                        </PrivateRoute>
+                    } 
+                />
+
+                <Route 
+                    path="/admin" 
+                    element={
+                        <PrivateRoute>
+                            <AdminDashboard />
                         </PrivateRoute>
                     } 
                 />

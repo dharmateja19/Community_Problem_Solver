@@ -258,12 +258,12 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import API from '../utils/api.js';
-import { getAuthData } from '../utils/auth.js';
+import { useAuthUser } from '../utils/useAuthUser.js';
 
 const ProblemDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = getAuthData();
+  const { user } = useAuthUser();
 
   const [problem, setProblems] = useState(null);
   const [solutions, setSolutions] = useState([]);
@@ -277,10 +277,19 @@ const ProblemDetail = () => {
   const [mapCoords, setMapCoords] = useState(null);
   const [mapLoading, setMapLoading] = useState(false);
   const [mapError, setMapError] = useState('');
+  const [statusDraft, setStatusDraft] = useState('open');
+  const [trackingNote, setTrackingNote] = useState('');
+  const [trackingSaving, setTrackingSaving] = useState(false);
 
   useEffect(() => {
     fetchProblemDetails();
   }, [id]);
+
+  useEffect(() => {
+    if (problem?.status) {
+      setStatusDraft(problem.status);
+    }
+  }, [problem?.status]);
 
   useEffect(() => {
     if (!problem?.location) {
@@ -404,11 +413,77 @@ const ProblemDetail = () => {
     }
   };
 
+  const handleSelectSolution = async (solutionId) => {
+    try {
+      const res = await API.patch(`/problems/select-solution/${id}`, {
+        solutionId
+      });
+
+      setProblems(res.data.problem);
+      toast.success('Solution selected for implementation');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to select solution');
+    }
+  };
+
+  const handleUpdateStatus = async () => {
+    if (!statusDraft) {
+      toast.error('Select a status');
+      return;
+    }
+
+    try {
+      const res = await API.patch(`/problems/status/${id}`, {
+        status: statusDraft
+      });
+
+      setProblems(res.data.problem);
+      toast.success('Status updated');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update status');
+    }
+  };
+
+  const handleAddTrackingNote = async (e) => {
+    e.preventDefault();
+
+    if (!trackingNote.trim()) {
+      toast.error('Please enter a tracking note');
+      return;
+    }
+
+    try {
+      setTrackingSaving(true);
+      await API.post(`/tracking/note/${id}`, {
+        note: trackingNote.trim()
+      });
+
+      setTrackingNote('');
+      toast.success('Tracking note added');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to add tracking note');
+    } finally {
+      setTrackingSaving(false);
+    }
+  };
+
   const statusStyles = {
     open: 'bg-blue-100 text-[#0c2340]',
     'in-progress': 'bg-amber-100 text-[#92400e]',
     completed: 'bg-[#d1fae5] text-[#065f46]'
   };
+
+  const isOwner =
+    user?.id && problem?.user?._id
+      ? user.id === problem.user._id
+      : user?._id === problem?.user?._id;
+
+  const isVolunteer = user?.role === 'volunteer';
+  const isVolunteerForCity = isVolunteer && user?.city && user.city === problem?.city;
+  const statusOptions = ['open', 'in-progress', 'completed'];
+
+  const selectedSolutionId =
+    problem?.selectedSolutionId?._id || problem?.selectedSolutionId || null;
 
   const discussionsBySolution = discussions.reduce((acc, discussion) => {
     const key = discussion.solutionId || 'problem';
@@ -487,6 +562,117 @@ const ProblemDetail = () => {
 
             </div>
 
+            {isOwner && (
+              <div className="bg-gray-100 rounded-lg p-4 mb-6 flex flex-col gap-4">
+                <div className="flex md:flex-col gap-4 items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Update status manually</p>
+                    <p className="text-[#065f46] font-semibold">Implementation progress</p>
+                  </div>
+
+                  <div className="flex md:flex-col gap-3 items-center">
+                    <select
+                      value={statusDraft}
+                      onChange={(e) => setStatusDraft(e.target.value)}
+                      className="border rounded-lg px-4 py-2 outline-none focus:ring-2 focus:ring-[#10b981]"
+                    >
+                      {statusOptions.map((value) => (
+                        <option
+                          key={value}
+                          value={value}
+                          disabled={!isVolunteer && value === 'completed'}
+                        >
+                          {value === 'in-progress'
+                            ? 'In Progress'
+                            : value.charAt(0).toUpperCase() + value.slice(1)}
+                        </option>
+                      ))}
+                    </select>
+
+                    <button
+                      onClick={handleUpdateStatus}
+                      className="bg-[#10b981] hover:bg-[#065f46] text-white px-4 py-2 rounded-lg font-semibold"
+                    >
+                      Save Status
+                    </button>
+                  </div>
+                </div>
+
+                {problem.status === 'in-progress' && !problem.completionRequested && (
+                  <div className="flex md:flex-col items-center justify-between gap-4">
+                    <p className="text-sm text-gray-600">
+                      When the work is done, request a volunteer to approve completion.
+                    </p>
+                    <button
+                      onClick={async () => {
+                        try {
+                          const res = await API.patch(`/problems/request-completion/${id}`);
+                          setProblems(res.data.problem);
+                          toast.success('Completion requested');
+                        } catch (error) {
+                          toast.error(error.response?.data?.message || 'Failed to request completion');
+                        }
+                      }}
+                      className="border border-[#10b981] text-[#10b981] hover:bg-[#10b981] hover:text-white px-4 py-2 rounded-lg font-semibold"
+                    >
+                      Request Completion
+                    </button>
+                  </div>
+                )}
+
+                {problem.completionRequested && (
+                  <div className="text-sm text-amber-700 bg-amber-100 border border-amber-200 rounded-lg px-4 py-3">
+                    Completion requested. Waiting for volunteer approval.
+                  </div>
+                )}
+
+                <form onSubmit={handleAddTrackingNote} className="bg-white rounded-lg p-4 border border-[#d1fae5]">
+                  <label className="text-sm font-semibold text-[#065f46]">
+                    Add progress note
+                  </label>
+                  <textarea
+                    value={trackingNote}
+                    onChange={(e) => setTrackingNote(e.target.value)}
+                    placeholder="Share a quick implementation update..."
+                    rows="3"
+                    className="w-full border rounded-lg p-3 mt-3 outline-none focus:ring-2 focus:ring-[#10b981]"
+                  />
+
+                  <div className="flex justify-end mt-3">
+                    <button
+                      type="submit"
+                      disabled={trackingSaving}
+                      className="bg-[#10b981] hover:bg-[#065f46] text-white px-4 py-2 rounded-lg font-semibold disabled:opacity-60"
+                    >
+                      {trackingSaving ? 'Saving...' : 'Add Note'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {isVolunteerForCity && problem.completionRequested && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 flex md:flex-col items-center justify-between gap-4">
+                <p className="text-amber-800 text-sm">
+                  This problem has a completion request. Approve if verified on the ground.
+                </p>
+                <button
+                  onClick={async () => {
+                    try {
+                      const res = await API.patch(`/problems/approve-completion/${id}`);
+                      setProblems(res.data.problem);
+                      toast.success('Completion approved');
+                    } catch (error) {
+                      toast.error(error.response?.data?.message || 'Failed to approve completion');
+                    }
+                  }}
+                  className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg font-semibold"
+                >
+                  Approve Completion
+                </button>
+              </div>
+            )}
+
             <div className="grid md:grid-cols-1 grid-cols-3 gap-4 bg-gray-100 rounded-lg p-6 mb-6">
 
               <div>
@@ -502,6 +688,11 @@ const ProblemDetail = () => {
                   <MapPin size={18} />
                   {problem.location}
                 </p>
+                {problem.city && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    City: {problem.city}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -618,6 +809,38 @@ const ProblemDetail = () => {
 
           </section>
 
+          {/* Selected Solution */}
+          <section className="bg-white border-2 border-[#d1fae5] rounded-xl p-8">
+            <h2 className="text-[#065f46] text-xl font-bold mb-4">
+              Selected Solution
+            </h2>
+
+            {selectedSolutionId ? (
+              <div className="bg-gray-100 rounded-lg p-6 border-l-4 border-[#10b981]">
+                <div className="flex flex-wrap gap-3 items-center mb-3">
+                  <span className="bg-[#10b981] text-white px-3 py-1 rounded text-sm">
+                    Selected for Implementation
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    Votes: {problem?.selectedSolutionId?.votes ?? 0}
+                  </span>
+                </div>
+
+                <p className="text-gray-700 leading-6 mb-3">
+                  {problem?.selectedSolutionId?.description || 'Selected solution details are not available.'}
+                </p>
+
+                <div className="text-sm text-gray-500">
+                  By {problem?.selectedSolutionId?.user?.name || 'Unknown'}
+                </div>
+              </div>
+            ) : (
+              <div className="bg-gray-100 rounded-lg p-6 text-gray-500">
+                No solution selected yet. The problem owner can choose one for implementation.
+              </div>
+            )}
+          </section>
+
           {/* Solutions */}
           <section className="bg-white border-2 border-[#d1fae5] rounded-xl p-8">
 
@@ -654,6 +877,12 @@ const ProblemDetail = () => {
                       </span>
                     )}
 
+                    {selectedSolutionId === solution._id && (
+                      <span className="bg-[#10b981] text-white px-3 py-1 rounded text-sm flex items-center gap-1">
+                        Selected
+                      </span>
+                    )}
+
                     <span className="text-sm text-gray-500">
                       Rank #{solution.rank}
                     </span>
@@ -663,18 +892,35 @@ const ProblemDetail = () => {
                     {solution.description}
                   </p>
 
-                  <div className="flex md:flex-col justify-between gap-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="text-sm text-gray-500">
                       By {solution.user?.name} • {new Date(solution.createdAt).toLocaleDateString()}
                     </div>
 
-                    <button
-                      onClick={() => handleVoteSolution(solution._id)}
-                      className="border px-4 py-2 rounded-lg hover:bg-[#10b981] hover:text-white flex items-center gap-2 transition"
-                    >
-                      <ThumbsUp size={18} />
-                      {solution.votes} Votes
-                    </button>
+                    <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                      {isOwner && (
+                        <button
+                          onClick={() => handleSelectSolution(solution._id)}
+                          className={`border px-4 py-2 rounded-lg font-semibold transition w-full sm:w-auto ${
+                            selectedSolutionId === solution._id
+                              ? 'border-[#10b981] text-[#10b981]'
+                              : 'border-gray-300 text-gray-700 hover:border-[#10b981] hover:text-[#10b981]'
+                          }`}
+                        >
+                          {selectedSolutionId === solution._id
+                            ? 'Selected'
+                            : 'Select for Implementation'}
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => handleVoteSolution(solution._id)}
+                        className="border px-4 py-2 rounded-lg hover:bg-[#10b981] hover:text-white flex items-center gap-2 transition w-full sm:w-auto justify-center"
+                      >
+                        <ThumbsUp size={18} />
+                        {solution.votes} Votes
+                      </button>
+                    </div>
                   </div>
 
                   <div className="mt-6 border-t border-gray-200 pt-4">
