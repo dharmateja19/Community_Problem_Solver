@@ -1,110 +1,3 @@
-// import { useNavigate, useLocation } from 'react-router-dom';
-// import { LogOut, Bell, Menu, X } from 'lucide-react';
-// import { useState } from 'react';
-// import { logout } from '../utils/auth.js';
-// import '../styles/Navbar.css';
-
-// const Navbar = ({ user, notifications = [] }) => {
-//     const navigate = useNavigate();
-//     const location = useLocation();
-//     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-//     const handleLogout = () => {
-//         logout();
-//         navigate('/login');
-//     };
-
-//     const unreadCount = notifications.filter(n => !n.isRead).length;
-
-//     return (
-//         <nav className="navbar">
-//             <div className="nav-container">
-//                 <div className="nav-brand">
-//                     <h1>CPS</h1>
-//                 </div>
-
-//                 <button 
-//                     className="mobile-menu-btn"
-//                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-//                 >
-//                     {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-//                 </button>
-
-//                 <div className={`nav-menu ${mobileMenuOpen ? 'active' : ''}`}>
-//                     <a 
-//                         href="/dashboard" 
-//                         className={location.pathname === '/dashboard' ? 'active' : ''}
-//                     >
-//                         Dashboard
-//                     </a>
-//                     <a 
-//                         href="/problems" 
-//                         className={location.pathname === '/problems' ? 'active' : ''}
-//                     >
-//                         Problems
-//                     </a>
-//                     <a 
-//                         href="/create-problem" 
-//                         className={location.pathname === '/create-problem' ? 'active' : ''}
-//                     >
-//                         Report Problem
-//                     </a>
-//                     <a 
-//                         href="/notifications" 
-//                         className={location.pathname === '/notifications' ? 'active' : ''}
-//                     >
-//                         Notifications
-//                     </a>
-//                     {user && (
-//                         <>
-//                             <a 
-//                                 href="/profile" 
-//                                 className={location.pathname === '/profile' ? 'active' : ''}
-//                             >
-//                                 My Profile
-//                             </a>
-//                         </>
-//                     )}
-//                 </div>
-
-//                 <div className="nav-end">
-//                     {user && (
-//                         <>
-//                             <button
-//                                 className="notification-bell"
-//                                 onClick={() => navigate('/notifications')}
-//                                 title="Open notifications"
-//                             >
-//                                 <Bell size={20} />
-//                                 {unreadCount > 0 && (
-//                                     <span className="notification-badge">{unreadCount}</span>
-//                                 )}
-//                             </button>
-//                             <button 
-//                                 className="user-info"
-//                                 onClick={() => navigate('/profile')}
-//                                 title="Go to Profile"
-//                             >
-//                                 <span className="user-name">{user.name}</span>
-//                             </button>
-//                         </>
-//                     )}
-//                     {user && (
-//                         <button className="logout-btn" onClick={handleLogout} title="Logout">
-//                             <LogOut size={20} />
-//                         </button>
-//                     )}
-//                 </div>
-//             </div>
-//         </nav>
-//     );
-// };
-
-// export default Navbar;
-
-
-// Navbar.jsx (Tailwind Converted - Colors Preserved)
-
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LogOut, Bell, Menu, X } from 'lucide-react';
 import { useState } from 'react';
@@ -134,7 +27,7 @@ const Navbar = ({ user, notifications = [] }) => {
     return (
         <nav className="bg-white border-b-2 border-[#d1fae5] py-4 sticky top-0 z-[100] shadow-[0_2px_4px_rgba(0,0,0,0.05)]">
 
-            <div className="max-w-[1200px] mx-auto px-4 flex justify-between items-center relative gap-4">
+            <div className="mx-auto px-4 flex justify-between items-center relative gap-4">
 
                 {/* Logo */}
                 <div>
@@ -142,10 +35,10 @@ const Navbar = ({ user, notifications = [] }) => {
                         onClick={() => navigate('/dashboard')}
                         className="text-[#10b981] text-[1.5rem] font-bold cursor-pointer"
                     >
-                        CPS
+                        Community Problem Solver
                     </h1>
                 </div>
-
+                <div className="flex justify-between">
                 {/* Desktop Menu */}
                 <div className="hidden md:hidden lg:flex gap-8 mx-8 flex-1">
 
@@ -170,12 +63,12 @@ const Navbar = ({ user, notifications = [] }) => {
                         Report Problem
                     </button>
 
-                    <button
+                    {/* <button
                         onClick={() => navigate('/notifications')}
                         className={navLinkClass('/notifications')}
                     >
                         Notifications
-                    </button>
+                    </button> */}
 
                     {user?.role === 'volunteer' && (
                         <button
@@ -211,14 +104,14 @@ const Navbar = ({ user, notifications = [] }) => {
                         Regions
                     </button>
 
-                    {user && (
+                    {/* {user && (
                         <button
                             onClick={() => navigate('/profile')}
                             className={navLinkClass('/profile')}
                         >
                             My Profile
                         </button>
-                    )}
+                    )} */}
 
                 </div>
 
@@ -282,7 +175,7 @@ const Navbar = ({ user, notifications = [] }) => {
                     </button>
 
                 </div>
-
+                </div>
                 {/* Mobile Menu */}
                 {mobileMenuOpen && (
                     <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-b-2 border-[#d1fae5] p-4 flex flex-col gap-4 shadow-md">

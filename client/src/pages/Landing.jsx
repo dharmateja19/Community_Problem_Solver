@@ -10,7 +10,7 @@ const Landing = () => {
 
       {/* Navbar */}
       <nav className="bg-white border-b-2 border-[#d1fae5] py-5 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-[1200px] mx-auto px-4 flex items-center justify-between">
+        <div className=" mx-auto px-4 flex items-center justify-between">
 
           <h1 className="text-[#10b981] text-[2rem] font-bold">
             Community Problem Solver

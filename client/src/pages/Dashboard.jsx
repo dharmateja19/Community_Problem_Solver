@@ -8,6 +8,7 @@ import {
 	MapPin,
 	User,
 	UserCheck,
+	AlertCircle,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import API from "../utils/api.js";
@@ -20,6 +21,7 @@ const Dashboard = () => {
 	const navigate = useNavigate();
 	const [stats, setStats] = useState({
 		totalProblems: 0,
+		openProblems: 0,
 		activeSolutions: 0,
 		completedProblems: 0,
 		myContributions: 0,
@@ -77,8 +79,11 @@ const Dashboard = () => {
 					(p) => p.status === "in-progress",
 				).length;
 
+				const open = problems.filter((p) => p.status === "open").length;
+
 				setStats({
 					totalProblems: problems.length,
+					openProblems: open,
 					activeSolutions: inProgress,
 					completedProblems: completed,
 					myContributions: 0,
@@ -198,7 +203,7 @@ const Dashboard = () => {
 				) : (
 					<>
 						{/* Stats */}
-						<section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+						<section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6 mb-8">
 							{/* Card */}
 							<div className="cursor-pointer bg-gradient-to-br from-white to-[#d1fae5] border-2 border-[#d1fae5] rounded-xl p-6 flex md:flex-col md:text-center items-center gap-6 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(16,185,129,0.2)] hover:border-[#10b981] transition">
 								<div className="w-[60px] h-[60px] rounded-xl bg-[#10b981] text-white flex items-center justify-center">
@@ -211,6 +216,21 @@ const Dashboard = () => {
 									</h3>
 									<p className="text-[0.9rem] text-gray-500 mt-1">
 										Total Problems
+									</p>
+								</div>
+							</div>
+
+							<div className="cursor-pointer bg-gradient-to-br from-white to-[#d1fae5] border-2 border-[#d1fae5] rounded-xl p-6 flex md:flex-col md:text-center items-center gap-6 hover:-translate-y-1 hover:shadow-[0_10px_30px_rgba(16,185,129,0.2)] hover:border-[#10b981] transition">
+								<div className="w-[60px] h-[60px] rounded-xl bg-orange-500 text-white flex items-center justify-center">
+									<AlertCircle size={24} />
+								</div>
+
+								<div>
+									<h3 className="text-[1.75rem] font-bold text-[#065f46]">
+										{stats.openProblems}
+									</h3>
+									<p className="text-[0.9rem] text-gray-500 mt-1">
+										Open Problems
 									</p>
 								</div>
 							</div>
