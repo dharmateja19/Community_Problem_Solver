@@ -10,4 +10,5 @@ router.post('/verify-otp', verifyLoginOTP)
 router.post('/resend-otp', resendOTP)
 router.put('/profile', authMiddleware, updateProfile)
 
+
 export default router
